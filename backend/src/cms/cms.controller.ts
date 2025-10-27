@@ -1,3 +1,4 @@
+// src/cms/cms.controller.ts
 import {
     Controller,
     Get,
@@ -14,46 +15,38 @@ import { CmsService } from './cms.service';
 import { CreateCmsDto } from './dto/create-cms.dto';
 import { UpdateCmsDto } from './dto/update-cms.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../auth/roles.guard';
-import { Roles } from '../auth/roles.decorator';
 
 @Controller('cms')
 export class CmsController {
     constructor(private readonly cmsService: CmsService) { }
 
-    // Public: fetch all sections
+    // PUBLIC: anyone can read
     @Get()
     findAll() {
         return this.cmsService.findAll();
     }
 
-    // Public: fetch one section by name
     @Get(':section')
     findOne(@Param('section') section: string) {
         return this.cmsService.findBySection(section);
     }
 
-    // Admin: create new content section
+    // ADMIN ONLY: protected by JwtAuthGuard (checks role inside)
     @Post()
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('admin')
+    @UseGuards(JwtAuthGuard)
     @UsePipes(new ValidationPipe({ whitelist: true }))
     create(@Body() createDto: CreateCmsDto) {
         return this.cmsService.create(createDto);
     }
 
-    // Admin: update existing section
     @Patch(':section')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('admin')
+    @UseGuards(JwtAuthGuard)
     update(@Param('section') section: string, @Body() updateDto: UpdateCmsDto) {
         return this.cmsService.updateBySection(section, updateDto);
     }
 
-    // Admin: delete section
     @Delete(':section')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('admin')
+    @UseGuards(JwtAuthGuard)
     remove(@Param('section') section: string) {
         return this.cmsService.removeBySection(section);
     }

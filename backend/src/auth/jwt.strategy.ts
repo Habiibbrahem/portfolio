@@ -19,17 +19,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     async validate(payload: { sub: string; username: string; role: string }) {
-        // Fetch user to ensure it still exists (optional but secure)
         const user = await this.usersService.findByUsername(payload.username);
-        if (!user) {
-            return null; // This will trigger 401
-        }
+        if (!user) return null;
 
-        // MUST RETURN `role` so RolesGuard can read it
         return {
             userId: payload.sub,
             username: payload.username,
-            role: payload.role, // THIS IS THE KEY
+            role: payload.role, // needed for guard
         };
     }
 }

@@ -1,5 +1,23 @@
-import { Injectable } from '@nestjs/common';
+// src/auth/jwt-auth.guard.ts
+import { Injectable, UnauthorizedException, ExecutionContext } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') { }
+export class JwtAuthGuard extends AuthGuard('jwt') {
+    canActivate(context: ExecutionContext) {
+        return super.canActivate(context);
+    }
+
+    handleRequest(err: any, user: any, info: any) {
+        if (err || !user) {
+            throw err || new UnauthorizedException();
+        }
+
+        // Only allow admin
+        if (user.role !== 'admin') {
+            throw new UnauthorizedException('Admin access required');
+        }
+
+        return user;
+    }
+}
