@@ -2,18 +2,22 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User, UserDocument } from './schema/user.schema';
+import { User, UserDocument } from './schema/user.schema'; // ← MUST BE THIS PATH
 
 @Injectable()
 export class UsersService {
     constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) { }
 
-    async create(createUserDto: { username: string; password: string; role?: string }) {
+    async create(createUserDto: { email?: string; username?: string; password: string; role?: string }) {
         const user = new this.userModel({
             ...createUserDto,
-            role: createUserDto.role || 'admin', // default to admin
+            role: createUserDto.role || 'admin',
         });
         return user.save();
+    }
+
+    async findByEmail(email: string): Promise<UserDocument | null> {
+        return this.userModel.findOne({ email }).exec();
     }
 
     async findByUsername(username: string): Promise<UserDocument | null> {

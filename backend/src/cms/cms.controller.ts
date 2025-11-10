@@ -20,7 +20,6 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 export class CmsController {
     constructor(private readonly cmsService: CmsService) { }
 
-    // PUBLIC: anyone can read
     @Get()
     findAll() {
         return this.cmsService.findAll();
@@ -31,7 +30,6 @@ export class CmsController {
         return this.cmsService.findBySection(section);
     }
 
-    // ADMIN ONLY: protected by JwtAuthGuard (checks role inside)
     @Post()
     @UseGuards(JwtAuthGuard)
     @UsePipes(new ValidationPipe({ whitelist: true }))
@@ -49,5 +47,13 @@ export class CmsController {
     @UseGuards(JwtAuthGuard)
     remove(@Param('section') section: string) {
         return this.cmsService.removeBySection(section);
+    }
+
+    // REORDER — FIXED & INSIDE CLASS
+    @Post('reorder')
+    @UseGuards(JwtAuthGuard)
+    async reorder(@Body() body: { sections: { id: string; order: number }[] }) {
+        await this.cmsService.reorder(body.sections);
+        return { success: true };
     }
 }

@@ -1,3 +1,4 @@
+// src/cms/schema/cms.schema.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
@@ -5,16 +6,16 @@ export type CmsDocument = Cms & Document;
 
 @Schema({ timestamps: true })
 export class Cms {
-    @Prop({ required: true, index: true })
-    section: string; // e.g. "hero", "about", "services"
+    @Prop({ type: String, required: true })
+    section: string;
 
-    @Prop({ type: Object, default: {} })
-    data: Record<string, any>; // flexible content structure
+    @Prop({ type: Object, required: true })
+    data: Record<string, any>;
 
-    @Prop({ default: 0 })
+    @Prop({ type: Number, default: 0 })
     order: number;
 
-    @Prop({ default: true })
+    @Prop({ type: Boolean, default: false })
     published: boolean;
 }
 

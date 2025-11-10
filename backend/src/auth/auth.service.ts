@@ -5,8 +5,6 @@ import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { RefreshTokenService } from './refresh-token.service';
-import { User } from '../users/schema/user.schema';
-import { Types } from 'mongoose';
 
 @Injectable()
 export class AuthService {
@@ -17,38 +15,37 @@ export class AuthService {
         private refreshTokenService: RefreshTokenService,
     ) { }
 
-    async register(username: string, password: string) {
+    async register(email: string, password: string) {
         const hashedPassword = await bcrypt.hash(password, 10);
-        return this.usersService.create({ username, password: hashedPassword });
+        return this.usersService.create({ email, password: hashedPassword });
     }
 
-    async login(username: string, password: string) {
-        const user = await this.usersService.findByUsername(username);
+    async login(email: string, password: string) {
+        const user = await this.usersService.findByEmail(email);
 
         if (!user || !(await bcrypt.compare(password, user.password))) {
             throw new UnauthorizedException('Invalid credentials');
         }
 
-        const userId =
-            user._id instanceof Types.ObjectId ? user._id.toString() : String(user._id);
+        const userId = String(user._id);
 
-        // ADD role TO PAYLOAD
         const payload = {
-            username: user.username,
             sub: userId,
-            role: user.role  // CRITICAL: this allows @Roles('admin') to work
+            email: user.email,
+            role: user.role,
         };
 
         const accessToken = this.jwtService.sign(payload);
 
+        // FIX: Use any to bypass strict typing
+        const refreshTokenExpiresIn: any = this.configService.get('REFRESH_TOKEN_EXPIRES_IN') ?? '7d';
+
         const refreshTokenOptions: JwtSignOptions = {
-            secret:
-                this.configService.get<string>('REFRESH_TOKEN_SECRET') ||
-                'default-refresh-secret',
-            expiresIn: (this.configService.get('REFRESH_TOKEN_EXPIRES_IN') as any) || '7d',
+            secret: this.configService.get<string>('REFRESH_TOKEN_SECRET') || 'default-refresh-secret',
+            expiresIn: refreshTokenExpiresIn,
         };
 
-        const refreshToken = this.jwtService.sign(payload, refreshTokenOptions); // also include role in refresh token
+        const refreshToken = this.jwtService.sign(payload, refreshTokenOptions);
 
         await this.refreshTokenService.create(userId, refreshToken);
 
@@ -61,30 +58,21 @@ export class AuthService {
     async refreshToken(refreshToken: string) {
         try {
             const payload = this.jwtService.verify(refreshToken, {
-                secret:
-                    this.configService.get<string>('REFRESH_TOKEN_SECRET') ||
-                    'default-refresh-secret',
-            }) as { username: string; sub: string; role: string };
+                secret: this.configService.get<string>('REFRESH_TOKEN_SECRET') || 'default-refresh-secret',
+            }) as { email: string; sub: string; role: string };
 
             const storedToken = await this.refreshTokenService.findByToken(refreshToken);
-
             if (!storedToken || storedToken.expiresAt < new Date()) {
                 throw new UnauthorizedException('Invalid or expired refresh token');
             }
 
-            const user = await this.usersService.findByUsername(payload.username);
+            const user = await this.usersService.findByEmail(payload.email);
             if (!user) {
                 throw new UnauthorizedException('User not found');
             }
 
-            const userId =
-                user._id instanceof Types.ObjectId ? user._id.toString() : String(user._id);
-
-            const newPayload = {
-                username: user.username,
-                sub: userId,
-                role: user.role  // include role in new access token
-            };
+            const userId = String(user._id);
+            const newPayload = { sub: userId, email: user.email, role: user.role };
             const newAccessToken = this.jwtService.sign(newPayload);
 
             return { access_token: newAccessToken };

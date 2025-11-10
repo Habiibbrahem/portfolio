@@ -4,15 +4,18 @@ import { Document } from 'mongoose';
 
 export type UserDocument = User & Document;
 
-@Schema()
+@Schema({ timestamps: true })
 export class User {
-    @Prop({ required: true, unique: true })
-    username: string;
+    @Prop({ type: String, required: false, unique: true, sparse: true })
+    email?: string;
 
-    @Prop({ required: true })
+    @Prop({ type: String, required: false, unique: true, sparse: true })
+    username?: string;
+
+    @Prop({ type: String, required: true })
     password: string;
 
-    @Prop({ type: String, enum: ['admin', 'user'], default: 'admin' })
+    @Prop({ type: String, default: 'user' })
     role: string;
 }
 

@@ -1,3 +1,4 @@
+// src/auth/auth.controller.ts
 import { Controller, Post, Body, HttpCode } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
@@ -6,14 +7,14 @@ export class AuthController {
     constructor(private authService: AuthService) { }
 
     @Post('register')
-    async register(@Body() body: { username: string; password: string }) {
-        return this.authService.register(body.username, body.password);
+    async register(@Body() body: { email: string; password: string }) {
+        return this.authService.register(body.email, body.password);
     }
 
     @Post('login')
     @HttpCode(200)
-    async login(@Body() body: { username: string; password: string }) {
-        return this.authService.login(body.username, body.password);
+    async login(@Body() body: { email: string; password: string }) {
+        return this.authService.login(body.email, body.password);
     }
 
     @Post('refresh')
