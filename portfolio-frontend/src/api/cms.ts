@@ -19,7 +19,7 @@ export const getNavbar = async (): Promise<CmsSection> => {
     }
 };
 
-export const getHero = async (): Promise<CmsSection> => {  // ← ADDED MISSING EXPORT
+export const getHero = async (): Promise<CmsSection> => {
     try {
         const { data } = await api.get('/cms/hero');
         return data;
@@ -41,18 +41,17 @@ export const getHero = async (): Promise<CmsSection> => {  // ← ADDED MISSING 
     }
 };
 
-export const getSections = async (): Promise<CmsSection[]> => {  // ← FIXED MISSING
+export const getSections = async (): Promise<CmsSection[]> => {
     try {
         const { data } = await api.get('/cms/sections');
-        return data;
+        return data || [];
     } catch (err: any) {
-        console.error('getSections failed:', err);
+        console.warn('Sections not found yet — returning empty');
         return [];
     }
 };
 
 export const updateNavbar = async (items: NavbarItem[]): Promise<CmsSection> => {
-    console.log('Saving navbar:', { data: { items } });
     const { data } = await api.patch('/cms/navbar', { data: { items } });
     return data;
 };
@@ -62,4 +61,8 @@ export const updateHero = async (heroData: Record<string, any>): Promise<CmsSect
     return data;
 };
 
-// ADD MORE IF NEEDED: updateSection, etc.
+// NEW: Generic update for any section
+export const updateSection = async (section: string, sectionData: Record<string, any>): Promise<CmsSection> => {
+    const { data } = await api.patch(`/cms/${section}`, { data: sectionData });
+    return data;
+};

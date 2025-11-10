@@ -2,7 +2,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
 import { AppController } from './app.controller';
@@ -14,10 +13,10 @@ import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
-    // ✅ Global config module to read .env
+    // Global config module to read .env
     ConfigModule.forRoot({ isGlobal: true }),
 
-    // ✅ Database connection (MongoDB)
+    // Database connection (MongoDB)
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -26,13 +25,10 @@ import { UploadModule } from './upload/upload.module';
       inject: [ConfigService],
     }),
 
-    // ✅ Serve uploaded files statically
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads'), // folder path
-      serveRoot: '/uploads', // route prefix
-    }),
+    // REMOVED: ServeStaticModule for /uploads
+    // No longer needed → Cloudinary serves images directly
 
-    // ✅ App modules
+    // App modules
     AuthModule,
     UsersModule,
     CmsModule,

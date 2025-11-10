@@ -1,9 +1,15 @@
-// src/components/admin/ContentManager.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Box, Button, TextField, Typography, Alert, CircularProgress, Paper, Tabs, Tab } from '@mui/material';
-import { getHero, updateHero, getSections } from '../../api/cms.ts';  // ← FIXED IMPORT
-import type { CmsSection } from '../../types/cms.ts';
+import {
+    Box, Button, TextField, Typography, Alert, CircularProgress,
+    Paper, Tabs, Tab, IconButton, Stack
+} from '@mui/material';
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { getHero, updateHero, getSections } from '../../api/cms';
+import { uploadImage, deleteImage } from '../../api/upload';
+import api from '../../api/client';
+import type { CmsSection } from '../../types/cms';
 
 export default function ContentManager() {
     const queryClient = useQueryClient();
@@ -11,6 +17,7 @@ export default function ContentManager() {
     const [title, setTitle] = useState('');
     const [subtitle, setSubtitle] = useState('');
     const [content, setContent] = useState('');
+    const [backgroundImage, setBackgroundImage] = useState('');
     const [success, setSuccess] = useState('');
     const [error, setError] = useState('');
 
@@ -28,46 +35,68 @@ export default function ContentManager() {
         mutationFn: updateHero,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['hero'] });
-            setSuccess('✅ Hero updated & LIVE!');
+            setSuccess('Hero section updated successfully');
             setTimeout(() => setSuccess(''), 4000);
         },
         onError: (err: any) => {
-            setError(`❌ ${err.response?.data?.message || 'Save failed'}`);
+            setError(`Save failed: ${err.response?.data?.message || 'Please try again'}`);
+            setTimeout(() => setError(''), 5000);
         },
     });
 
+    // Auto-fill form
+    useEffect(() => {
+        if (hero) {
+            setTitle(hero.data?.title || '');
+            setSubtitle(hero.data?.subtitle || '');
+            setContent(hero.data?.content || '');
+            setBackgroundImage(hero.data?.backgroundImage || '');
+        }
+    }, [hero]);
+
     const handleSave = () => {
         if (!title.trim() || !subtitle.trim()) {
-            setError('Title and Subtitle required!');
+            setError('Title and subtitle are required');
             return;
         }
         mutation.mutate({
             title: title.trim(),
             subtitle: subtitle.trim(),
-            content: content || '<p>Welcome to our construction company.</p>',
+            content: content || '<p>Professional construction services</p>',
+            backgroundImage,
         });
+    };
+
+    const handleUploadBackground = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+            const url = await uploadImage(file);
+            setBackgroundImage(url);
+            setSuccess('Background image uploaded!');
+        } catch {
+            setError('Upload failed');
+        }
+    };
+
+    const removeBackground = () => {
+        setBackgroundImage('');
+        setSuccess('Background removed');
     };
 
     if (heroLoading || sectionsLoading) {
         return <Box sx={{ p: 8, textAlign: 'center' }}><CircularProgress /></Box>;
     }
 
-    // Auto-fill on load
-    if (hero && !title) {
-        setTitle(hero.data?.title || '');
-        setSubtitle(hero.data?.subtitle || '');
-        setContent(hero.data?.content || '');
-    }
-
     return (
-        <Paper elevation={6} sx={{ p: 6, maxWidth: 1000, mx: 'auto', borderRadius: 4 }}>
-            <Typography variant="h3" gutterBottom color="#FF5722" fontWeight="bold" align="center">
-                Content Manager
+        <Paper elevation={3} sx={{ p: 4, maxWidth: 1000, mx: 'auto', borderRadius: 3 }}>
+            <Typography variant="h4" gutterBottom color="primary.main" fontWeight="bold">
+                Content Management
             </Typography>
 
-            <Tabs value={tab} onChange={(_, v) => setTab(v)} centered sx={{ mb: 4 }}>
+            <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 4 }}>
                 <Tab label="Hero Section" />
-                <Tab label="Other Sections" />
+                <Tab label="Page Sections" />
             </Tabs>
 
             {tab === 0 && (
@@ -81,7 +110,6 @@ export default function ContentManager() {
                         margin="normal"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        placeholder="Building Dreams"
                     />
                     <TextField
                         label="Subtitle"
@@ -89,7 +117,6 @@ export default function ContentManager() {
                         margin="normal"
                         value={subtitle}
                         onChange={(e) => setSubtitle(e.target.value)}
-                        placeholder="Excellence Since 2010"
                     />
                     <TextField
                         label="Content HTML"
@@ -99,22 +126,46 @@ export default function ContentManager() {
                         margin="normal"
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
-                        placeholder="<p>We deliver quality...</p>"
                     />
 
-                    <Button variant="contained" size="large" onClick={handleSave} sx={{ mt: 3, px: 6 }}>
-                        SAVE & UPDATE LIVE
+                    {/* BACKGROUND IMAGE PICKER */}
+                    <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>Hero Background Image</Typography>
+                    <Stack direction="row" spacing={2} alignItems="center">
+                        <Button variant="outlined" component="label">
+                            <PhotoCameraIcon sx={{ mr: 1 }} />
+                            Upload New Background
+                            <input type="file" hidden accept="image/*" onChange={handleUploadBackground} />
+                        </Button>
+                        {backgroundImage && (
+                            <IconButton color="error" onClick={removeBackground}>
+                                <DeleteIcon />
+                            </IconButton>
+                        )}
+                    </Stack>
+
+                    {backgroundImage && (
+                        <Box sx={{ mt: 2, borderRadius: 2, overflow: 'hidden', boxShadow: 3 }}>
+                            <img
+                                src={`${backgroundImage}?w=800&h=600&fit=cover`}
+                                alt="Hero background preview"
+                                style={{ width: '100%', display: 'block' }}
+                            />
+                        </Box>
+                    )}
+
+                    <Button variant="contained" size="large" onClick={handleSave} sx={{ mt: 4 }}>
+                        Save Changes
                     </Button>
 
-                    <Alert severity="success" sx={{ mt: 4 }}>
-                        Changes appear <strong>INSTANTLY</strong> on homepage → <a href="/" target="_blank">View Site</a>
+                    <Alert severity="info" sx={{ mt: 3 }}>
+                        Changes appear instantly on the live site. Use Media Manager to browse all images.
                     </Alert>
                 </>
             )}
 
             {tab === 1 && (
                 <Alert severity="info">
-                    {sections.length} sections loaded. Full editor coming soon!
+                    {sections.length} sections available. Full editor coming soon!
                 </Alert>
             )}
         </Paper>

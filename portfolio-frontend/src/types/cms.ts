@@ -1,5 +1,4 @@
-﻿// src/types/cms.ts
-export type SectionType =
+﻿export type SectionType =
     | 'hero'
     | 'about'
     | 'services'
@@ -8,12 +7,28 @@ export type SectionType =
     | 'team'
     | 'testimonials'
     | 'contact'
-    | 'cta';
+    | 'cta'
+    | 'expertise'
+    | 'process'
+    | 'safety'
+    | 'clients';
 
 export interface CmsSection {
     _id: string;
     section: string;
-    data: Record<string, any>;
+    data: {
+        title?: string;
+        subtitle?: string;
+        content?: string;
+        backgroundImage?: string;
+        background?: 'default' | 'secondary';
+        items?: Array<{
+            title: string;
+            description: string;
+            icon?: string;
+            image?: string;
+        }>;
+    };
     order: number;
     published: boolean;
     createdAt?: string;
@@ -26,4 +41,5 @@ export interface NavbarItem {
     link: string;
     order: number;
     published?: boolean;
+    external?: boolean;
 }

@@ -1,4 +1,3 @@
-// src/store/useAuthStore.ts
 import { create } from 'zustand';
 
 interface AuthData {
@@ -26,6 +25,5 @@ export const useAuthStore = create<AuthState>((set) => ({
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         set({ isAuthenticated: false, user: null });
-        // NO REDIRECT HERE – ProtectedRoute handles it
     },
 }));

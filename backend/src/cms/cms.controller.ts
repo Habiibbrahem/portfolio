@@ -25,6 +25,12 @@ export class CmsController {
         return this.cmsService.findAll();
     }
 
+    // NEW: Explicit /sections endpoint
+    @Get('sections')
+    async getAllSections() {
+        return this.cmsService.findAll();
+    }
+
     @Get(':section')
     findOne(@Param('section') section: string) {
         return this.cmsService.findBySection(section);
@@ -49,7 +55,6 @@ export class CmsController {
         return this.cmsService.removeBySection(section);
     }
 
-    // REORDER — FIXED & INSIDE CLASS
     @Post('reorder')
     @UseGuards(JwtAuthGuard)
     async reorder(@Body() body: { sections: { id: string; order: number }[] }) {
