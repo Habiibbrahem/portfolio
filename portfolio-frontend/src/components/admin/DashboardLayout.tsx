@@ -2,17 +2,32 @@
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
-  AppBar, Toolbar, Drawer, List, ListItemButton, ListItemIcon,
-  ListItemText, IconButton, Typography, Box, Divider, CssBaseline
+  AppBar,
+  Toolbar,
+  Drawer,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  IconButton,
+  Typography,
+  Box,
+  Divider,
+  CssBaseline,
+  Badge,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import NavigationIcon from '@mui/icons-material/Navigation';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
-import DesignServicesIcon from '@mui/icons-material/DesignServices'; // ← NEW ICON
+import DesignServicesIcon from '@mui/icons-material/DesignServices';
+import ContactPhoneIcon from '@mui/icons-material/ContactPhone';
+import MessageIcon from '@mui/icons-material/Message';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useAuthStore } from '../../store/useAuthStore';
+import { useQuery } from '@tanstack/react-query';
+import api from '../../api/client';
 
 const drawerWidth = 240;
 
@@ -23,12 +38,36 @@ export default function DashboardLayout() {
   const location = useLocation();
   const { logout } = useAuthStore();
 
+  // Fetch unread message count
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ['unread-messages-count'],
+    queryFn: async () => {
+      try {
+        const { data } = await api.get('/contact-messages/unread-count');
+        return data.count;
+      } catch (err) {
+        return 0; // If endpoint fails, show 0
+      }
+    },
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
   const menuItems = [
     { text: 'Overview', icon: <DashboardIcon />, path: '/admin/dashboard' },
     { text: 'Navigation', icon: <NavigationIcon />, path: '/admin/dashboard/navbar' },
     { text: 'Content', icon: <ContentCopyIcon />, path: '/admin/dashboard/content' },
     { text: 'Media', icon: <UploadFileIcon />, path: '/admin/dashboard/uploads' },
-    { text: 'Services', icon: <DesignServicesIcon />, path: '/admin/dashboard/services' }, // ← NEW MENU ITEM
+    { text: 'Services', icon: <DesignServicesIcon />, path: '/admin/dashboard/services' },
+    { text: 'Contact', icon: <ContactPhoneIcon />, path: '/admin/dashboard/contact' },
+    {
+      text: 'Messages',
+      icon: (
+        <Badge badgeContent={unreadCount} color="error" showZero={false}>
+          <MessageIcon />
+        </Badge>
+      ),
+      path: '/admin/dashboard/messages',
+    },
   ];
 
   const handleNav = (path: string) => {
@@ -82,7 +121,9 @@ export default function DashboardLayout() {
             '&:hover': { bgcolor: 'error.light', color: 'white' },
           }}
         >
-          <ListItemIcon sx={{ color: 'inherit' }}><LogoutIcon /></ListItemIcon>
+          <ListItemIcon sx={{ color: 'inherit' }}>
+            <LogoutIcon />
+          </ListItemIcon>
           <ListItemText primary="Logout" />
         </ListItemButton>
       </List>
@@ -93,14 +134,22 @@ export default function DashboardLayout() {
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
 
-      <AppBar position="fixed" sx={{
-        width: { sm: `calc(100% - ${drawerWidth}px)` },
-        ml: { sm: `${drawerWidth}px` },
-        zIndex: (theme) => theme.zIndex.drawer + 1,
-        bgcolor: 'primary.main',
-      }}>
+      <AppBar
+        position="fixed"
+        sx={{
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          ml: { sm: `${drawerWidth}px` },
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          bgcolor: 'primary.main',
+        }}
+      >
         <Toolbar>
-          <IconButton color="inherit" edge="start" onClick={handleDrawerToggle} sx={{ mr: 2, display: { sm: 'none' } }}>
+          <IconButton
+            color="inherit"
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{ mr: 2, display: { sm: 'none' } }}
+          >
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap fontWeight="bold">
@@ -109,26 +158,39 @@ export default function DashboardLayout() {
         </Toolbar>
       </AppBar>
 
-      <Drawer variant="temporary" open={mobileOpen} onClose={handleDrawerClose}
+      <Drawer
+        variant="temporary"
+        open={mobileOpen}
+        onClose={handleDrawerClose}
         ModalProps={{ keepMounted: true }}
-        sx={{ display: { xs: 'block', sm: 'none' }, '& .MuiDrawer-paper': { width: drawerWidth } }}>
+        sx={{
+          display: { xs: 'block', sm: 'none' },
+          '& .MuiDrawer-paper': { width: drawerWidth },
+        }}
+      >
         {drawer}
       </Drawer>
 
-      <Drawer variant="permanent" sx={{
-        display: { xs: 'none', sm: 'block' },
-        '& .MuiDrawer-paper': { width: drawerWidth, position: 'fixed', height: '100vh' },
-      }}>
+      <Drawer
+        variant="permanent"
+        sx={{
+          display: { xs: 'none', sm: 'block' },
+          '& .MuiDrawer-paper': { width: drawerWidth, position: 'fixed', height: '100vh' },
+        }}
+      >
         {drawer}
       </Drawer>
 
-      <Box component="main" sx={{
-        flexGrow: 1,
-        bgcolor: 'background.default',
-        minHeight: '100vh',
-        width: { sm: `calc(100% - ${drawerWidth}px)` },
-        ml: { sm: `${drawerWidth}px` },
-      }}>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          bgcolor: 'background.default',
+          minHeight: '100vh',
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          ml: { sm: `${drawerWidth}px` },
+        }}
+      >
         <Toolbar />
         <Box sx={{ p: 3, maxWidth: '1200px', mx: 'auto' }}>
           <Outlet />

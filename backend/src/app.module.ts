@@ -10,7 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { CmsModule } from './cms/cms.module';
 import { UploadModule } from './upload/upload.module';
-
+import { ContactMessagesModule } from './contact-messages/contact-messages.module';
 @Module({
   imports: [
     // Global config module to read .env
@@ -33,6 +33,7 @@ import { UploadModule } from './upload/upload.module';
     UsersModule,
     CmsModule,
     UploadModule,
+    ContactMessagesModule,
   ],
 
   controllers: [AppController],
