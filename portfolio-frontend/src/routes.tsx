@@ -6,14 +6,19 @@ import Overview from './components/admin/Overview';
 import NavbarManager from './components/admin/NavbarManager';
 import ContentManager from './components/admin/ContentManager';
 import UploadManager from './components/admin/UploadManager';
+import ServicesManager from './components/admin/ServicesManager'; // ← NEW IMPORT
 import Home from './pages/public/Home';
-import ProtectedRoute from './components/ProtectedRoute'; // FIXED PATH
+import Contact from './pages/public/Contact';
+import Services from './pages/public/Services';
+import ProtectedRoute from './components/ProtectedRoute';
 
 export default function AppRoutes() {
     return (
         <Routes>
             {/* PUBLIC ROUTES */}
             <Route path="/" element={<Home />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/services" element={<Services />} />
 
             {/* ADMIN ROUTES */}
             <Route path="/admin/login" element={<Login />} />
@@ -29,6 +34,7 @@ export default function AppRoutes() {
                 <Route path="navbar" element={<NavbarManager />} />
                 <Route path="content" element={<ContentManager />} />
                 <Route path="uploads" element={<UploadManager />} />
+                <Route path="services" element={<ServicesManager />} /> {/* ← NEW ROUTE */}
             </Route>
         </Routes>
     );

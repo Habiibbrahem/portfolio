@@ -1,3 +1,4 @@
+// src/components/admin/DashboardLayout.tsx
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -9,6 +10,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import NavigationIcon from '@mui/icons-material/Navigation';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
+import DesignServicesIcon from '@mui/icons-material/DesignServices'; // ← NEW ICON
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useAuthStore } from '../../store/useAuthStore';
 
@@ -26,6 +28,7 @@ export default function DashboardLayout() {
     { text: 'Navigation', icon: <NavigationIcon />, path: '/admin/dashboard/navbar' },
     { text: 'Content', icon: <ContentCopyIcon />, path: '/admin/dashboard/content' },
     { text: 'Media', icon: <UploadFileIcon />, path: '/admin/dashboard/uploads' },
+    { text: 'Services', icon: <DesignServicesIcon />, path: '/admin/dashboard/services' }, // ← NEW MENU ITEM
   ];
 
   const handleNav = (path: string) => {
