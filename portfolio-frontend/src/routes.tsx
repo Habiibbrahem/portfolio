@@ -1,4 +1,3 @@
-// src/routes.tsx
 import { Routes, Route } from 'react-router-dom';
 import Login from './pages/admin/Login';
 import Dashboard from './pages/admin/Dashboard';
@@ -7,12 +6,13 @@ import NavbarManager from './components/admin/NavbarManager';
 import ContentManager from './components/admin/ContentManager';
 import UploadManager from './components/admin/UploadManager';
 import ServicesManager from './components/admin/ServicesManager';
-import ContactManager from './components/admin/ContactManager'; // ← ADD THIS LINE
+import ContactManager from './components/admin/ContactManager';
+import MessagesManager from './components/admin/MessagesManager';
+import SocialMediaManager from './components/admin/SocialMediaManager'; // ← NEW IMPORT
 import Home from './pages/public/Home';
 import Contact from './pages/public/Contact';
 import Services from './pages/public/Services';
 import ProtectedRoute from './components/ProtectedRoute';
-import MessagesManager from './components/admin/MessagesManager';
 
 export default function AppRoutes() {
     return (
@@ -38,7 +38,8 @@ export default function AppRoutes() {
                 <Route path="uploads" element={<UploadManager />} />
                 <Route path="services" element={<ServicesManager />} />
                 <Route path="messages" element={<MessagesManager />} />
-                <Route path="contact" element={<ContactManager />} /> {/* ← THIS ROUTE IS NOW VALID */}
+                <Route path="contact" element={<ContactManager />} />
+                <Route path="social" element={<SocialMediaManager />} /> {/* ← NEW ROUTE */}
             </Route>
         </Routes>
     );

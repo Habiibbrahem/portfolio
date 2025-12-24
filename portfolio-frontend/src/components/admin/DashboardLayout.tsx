@@ -1,4 +1,3 @@
-// src/components/admin/DashboardLayout.tsx
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -24,6 +23,7 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import DesignServicesIcon from '@mui/icons-material/DesignServices';
 import ContactPhoneIcon from '@mui/icons-material/ContactPhone';
 import MessageIcon from '@mui/icons-material/Message';
+import ShareIcon from '@mui/icons-material/Share'; // ← NEW IMPORT
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useQuery } from '@tanstack/react-query';
@@ -46,10 +46,10 @@ export default function DashboardLayout() {
         const { data } = await api.get('/contact-messages/unread-count');
         return data.count;
       } catch (err) {
-        return 0; // If endpoint fails, show 0
+        return 0;
       }
     },
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 30000,
   });
 
   const menuItems = [
@@ -68,6 +68,7 @@ export default function DashboardLayout() {
       ),
       path: '/admin/dashboard/messages',
     },
+    { text: 'Social Media', icon: <ShareIcon />, path: '/admin/dashboard/social' }, // ← NEW ITEM
   ];
 
   const handleNav = (path: string) => {
