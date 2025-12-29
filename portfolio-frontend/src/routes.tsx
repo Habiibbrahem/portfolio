@@ -4,11 +4,12 @@ import Dashboard from './pages/admin/Dashboard';
 import Overview from './components/admin/Overview';
 import NavbarManager from './components/admin/NavbarManager';
 import ContentManager from './components/admin/ContentManager';
+import NewsManager from './components/admin/NewsManager'; // ← NEW
+import SocialMediaManager from './components/admin/SocialMediaManager';
 import UploadManager from './components/admin/UploadManager';
 import ServicesManager from './components/admin/ServicesManager';
 import ContactManager from './components/admin/ContactManager';
 import MessagesManager from './components/admin/MessagesManager';
-import SocialMediaManager from './components/admin/SocialMediaManager'; // ← NEW IMPORT
 import Home from './pages/public/Home';
 import Contact from './pages/public/Contact';
 import Services from './pages/public/Services';
@@ -35,11 +36,12 @@ export default function AppRoutes() {
                 <Route index element={<Overview />} />
                 <Route path="navbar" element={<NavbarManager />} />
                 <Route path="content" element={<ContentManager />} />
+                <Route path="news" element={<NewsManager />} /> {/* ← NEW */}
+                <Route path="social" element={<SocialMediaManager />} />
                 <Route path="uploads" element={<UploadManager />} />
                 <Route path="services" element={<ServicesManager />} />
                 <Route path="messages" element={<MessagesManager />} />
                 <Route path="contact" element={<ContactManager />} />
-                <Route path="social" element={<SocialMediaManager />} /> {/* ← NEW ROUTE */}
             </Route>
         </Routes>
     );

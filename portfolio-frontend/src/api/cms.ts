@@ -66,3 +66,29 @@ export const updateSection = async (section: string, sectionData: Record<string,
     const { data } = await api.patch(`/cms/${section}`, { data: sectionData });
     return data;
 };
+export const getNews = async (): Promise<CmsSection | null> => {
+    try {
+        const { data } = await api.get('/cms/news');
+        return data;
+    } catch {
+        return null;
+    }
+};
+
+export const getServicesSection = async (): Promise<CmsSection | null> => {
+    try {
+        const { data } = await api.get('/cms/services');
+        return data;
+    } catch {
+        return null;
+    }
+};
+
+export const getContactSection = async (): Promise<any> => {
+    try {
+        const { data } = await api.get('/cms/contact');
+        return data.data;
+    } catch {
+        return {};
+    }
+};

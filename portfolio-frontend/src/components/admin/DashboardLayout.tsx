@@ -23,7 +23,8 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import DesignServicesIcon from '@mui/icons-material/DesignServices';
 import ContactPhoneIcon from '@mui/icons-material/ContactPhone';
 import MessageIcon from '@mui/icons-material/Message';
-import ShareIcon from '@mui/icons-material/Share'; // ← NEW IMPORT
+import ShareIcon from '@mui/icons-material/Share';
+import ArticleIcon from '@mui/icons-material/Article'; // ← NEW: For News
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useQuery } from '@tanstack/react-query';
@@ -38,7 +39,6 @@ export default function DashboardLayout() {
   const location = useLocation();
   const { logout } = useAuthStore();
 
-  // Fetch unread message count
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ['unread-messages-count'],
     queryFn: async () => {
@@ -56,6 +56,8 @@ export default function DashboardLayout() {
     { text: 'Overview', icon: <DashboardIcon />, path: '/admin/dashboard' },
     { text: 'Navigation', icon: <NavigationIcon />, path: '/admin/dashboard/navbar' },
     { text: 'Content', icon: <ContentCopyIcon />, path: '/admin/dashboard/content' },
+    { text: 'News', icon: <ArticleIcon />, path: '/admin/dashboard/news' }, // ← NEW
+    { text: 'Social Media', icon: <ShareIcon />, path: '/admin/dashboard/social' },
     { text: 'Media', icon: <UploadFileIcon />, path: '/admin/dashboard/uploads' },
     { text: 'Services', icon: <DesignServicesIcon />, path: '/admin/dashboard/services' },
     { text: 'Contact', icon: <ContactPhoneIcon />, path: '/admin/dashboard/contact' },
@@ -68,7 +70,6 @@ export default function DashboardLayout() {
       ),
       path: '/admin/dashboard/messages',
     },
-    { text: 'Social Media', icon: <ShareIcon />, path: '/admin/dashboard/social' }, // ← NEW ITEM
   ];
 
   const handleNav = (path: string) => {
@@ -134,7 +135,6 @@ export default function DashboardLayout() {
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
-
       <AppBar
         position="fixed"
         sx={{
