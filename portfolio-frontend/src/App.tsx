@@ -12,53 +12,113 @@ const queryClient = new QueryClient({
 
 const theme = createTheme({
   palette: {
+    mode: 'light',
     primary: {
-      main: '#1a365d',
-      light: '#2d4a8a',
-      dark: '#0d2340'
+      main: '#1e293b',     // Deep slate (used for headings, navbar text)
+      dark: '#0f172a',
     },
     secondary: {
-      main: '#d97706',
-      light: '#f59e0b',
-      dark: '#b45309'
+      main: '#fbbf24',     // Bright yellow (buttons, accents)
+      light: '#fcd34d',
+      dark: '#f59e0b',
     },
     background: {
-      default: '#f8fafc',
-      paper: '#ffffff'
+      default: '#f8fafc',  // Very light gray (main content background)
+      paper: '#ffffff',    // White cards and forms
+    },
+    text: {
+      primary: '#1e293b',
+      secondary: '#475569',
     },
   },
   typography: {
     fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
     h1: {
-      fontWeight: 700,
-      fontSize: '3.5rem',
+      fontWeight: 900,
+      fontSize: '4.5rem',
+      lineHeight: 1.1,
+      letterSpacing: '-0.02em',
     },
     h2: {
-      fontWeight: 600,
+      fontWeight: 800,
+      fontSize: '3.5rem',
     },
     h3: {
-      fontWeight: 600,
+      fontWeight: 700,
+      fontSize: '2.8rem',
     },
+    h4: {
+      fontWeight: 700,
+      fontSize: '2.2rem',
+    },
+    button: {
+      textTransform: 'none',
+      fontWeight: 700,
+      fontSize: '1.1rem',
+    },
+  },
+  shape: {
+    borderRadius: 12,
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
+          padding: '14px 32px',
           borderRadius: 8,
-          textTransform: 'none',
-          fontWeight: 600,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+        },
+        containedSecondary: {
+          backgroundColor: '#fbbf24',
+          color: '#000000',
+          fontWeight: 700,
+          '&:hover': {
+            backgroundColor: '#f59e0b',
+            boxShadow: '0 6px 16px rgba(0,0,0,0.15)',
+          },
+        },
+        containedPrimary: {
+          backgroundColor: '#1e293b',
+          color: '#ffffff',
+          '&:hover': {
+            backgroundColor: '#0f172a',
+          },
         },
       },
     },
-    MuiAppBar: {
+    MuiCard: {
       styleOverrides: {
         root: {
-          boxShadow: '0 2px 12px rgba(0,0,0,0.1)',
+          borderRadius: 16,
+          boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+          overflow: 'hidden',
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+          boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 8,
+          },
         },
       },
     },
   },
 });
+
+// Enable smooth scrolling
+if (typeof window !== 'undefined') {
+  document.documentElement.style.scrollBehavior = 'smooth';
+}
 
 export default function App() {
   return (

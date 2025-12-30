@@ -15,7 +15,8 @@ import { uploadImage } from '../../api/upload';
 import api from '../../api/client';
 
 interface ContactData {
-    backgroundImage: string;
+    backgroundImage: string;        // For contact page
+    homeImage: string;              // NEW: For homepage "Get In Touch" right side
     addressLine1: string;
     addressLine2: string;
     phone1: string;
@@ -42,6 +43,7 @@ const getContact = async (): Promise<ContactSection> => {
                 section: 'contact',
                 data: {
                     backgroundImage: '',
+                    homeImage: '',
                     addressLine1: 'RUE IBN MAJ Z.I. SAINT GOBAIN',
                     addressLine2: 'Megrine BEN AROUS 2014 Tunisie',
                     phone1: '+ 216 71 428 807',
@@ -67,6 +69,7 @@ export default function ContactManager() {
     const queryClient = useQueryClient();
     const [contactData, setContactData] = useState<ContactData>({
         backgroundImage: '',
+        homeImage: '',
         addressLine1: '',
         addressLine2: '',
         phone1: '',
@@ -106,15 +109,15 @@ export default function ContactManager() {
         setContactData((prev) => ({ ...prev, [field]: value }));
     };
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'backgroundImage' | 'homeImage') => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        setSuccess('Uploading background image...');
+        setSuccess('Uploading image...');
         try {
             const url = await uploadImage(file);
-            setContactData((prev) => ({ ...prev, backgroundImage: url }));
-            setSuccess('Background image uploaded!');
+            setContactData((prev) => ({ ...prev, [field]: url }));
+            setSuccess('Image uploaded!');
         } catch (err) {
             setError('Image upload failed');
         }
@@ -137,95 +140,69 @@ export default function ContactManager() {
             {success && <Alert severity="success" sx={{ mb: 3 }}>{success}</Alert>}
             {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
-            {/* Background Image */}
+            {/* Background Image for Contact Page */}
             <Box sx={{ mb: 5 }}>
                 <Typography variant="h6" gutterBottom>
-                    Background Image
+                    Contact Page Background
                 </Typography>
                 <Button
                     variant="outlined"
                     component="label"
                     startIcon={<PhotoCameraIcon />}
                 >
-                    {contactData.backgroundImage ? 'Change Background Image' : 'Upload Background Image'}
-                    <input type="file" hidden accept="image/*" onChange={handleImageUpload} />
+                    {contactData.backgroundImage ? 'Change Background' : 'Upload Background'}
+                    <input type="file" hidden accept="image/*" onChange={(e) => handleImageUpload(e, 'backgroundImage')} />
                 </Button>
 
                 {contactData.backgroundImage && (
                     <Box sx={{ mt: 3, maxWidth: 800, borderRadius: 3, overflow: 'hidden' }}>
-                        <img
-                            src={contactData.backgroundImage}
-                            alt="Contact background"
-                            style={{ width: '100%', display: 'block', borderRadius: 12 }}
-                        />
+                        <img src={contactData.backgroundImage} alt="Contact background" style={{ width: '100%', borderRadius: 12 }} />
+                    </Box>
+                )}
+            </Box>
+
+            {/* Homepage "Get In Touch" Image */}
+            <Box sx={{ mb: 5 }}>
+                <Typography variant="h6" gutterBottom>
+                    Homepage "Get In Touch" Image (Right Side)
+                </Typography>
+                <Button
+                    variant="outlined"
+                    component="label"
+                    startIcon={<PhotoCameraIcon />}
+                >
+                    {contactData.homeImage ? 'Change Image' : 'Upload Image'}
+                    <input type="file" hidden accept="image/*" onChange={(e) => handleImageUpload(e, 'homeImage')} />
+                </Button>
+
+                {contactData.homeImage && (
+                    <Box sx={{ mt: 3, maxWidth: 800, borderRadius: 3, overflow: 'hidden' }}>
+                        <img src={contactData.homeImage} alt="Homepage contact" style={{ width: '100%', borderRadius: 12 }} />
                     </Box>
                 )}
             </Box>
 
             <Grid container spacing={4}>
                 <Grid item xs={12} md={6}>
-                    <TextField
-                        label="Address Line 1"
-                        fullWidth
-                        value={contactData.addressLine1}
-                        onChange={(e) => handleChange('addressLine1', e.target.value)}
-                        margin="normal"
-                    />
+                    <TextField label="Address Line 1" fullWidth value={contactData.addressLine1} onChange={(e) => handleChange('addressLine1', e.target.value)} margin="normal" />
                 </Grid>
                 <Grid item xs={12} md={6}>
-                    <TextField
-                        label="Address Line 2"
-                        fullWidth
-                        value={contactData.addressLine2}
-                        onChange={(e) => handleChange('addressLine2', e.target.value)}
-                        margin="normal"
-                    />
+                    <TextField label="Address Line 2" fullWidth value={contactData.addressLine2} onChange={(e) => handleChange('addressLine2', e.target.value)} margin="normal" />
                 </Grid>
                 <Grid item xs={12} md={4}>
-                    <TextField
-                        label="Phone 1"
-                        fullWidth
-                        value={contactData.phone1}
-                        onChange={(e) => handleChange('phone1', e.target.value)}
-                        margin="normal"
-                    />
+                    <TextField label="Phone 1" fullWidth value={contactData.phone1} onChange={(e) => handleChange('phone1', e.target.value)} margin="normal" />
                 </Grid>
                 <Grid item xs={12} md={4}>
-                    <TextField
-                        label="Phone 2"
-                        fullWidth
-                        value={contactData.phone2}
-                        onChange={(e) => handleChange('phone2', e.target.value)}
-                        margin="normal"
-                    />
+                    <TextField label="Phone 2" fullWidth value={contactData.phone2} onChange={(e) => handleChange('phone2', e.target.value)} margin="normal" />
                 </Grid>
                 <Grid item xs={12} md={4}>
-                    <TextField
-                        label="Phone 3"
-                        fullWidth
-                        value={contactData.phone3}
-                        onChange={(e) => handleChange('phone3', e.target.value)}
-                        margin="normal"
-                    />
+                    <TextField label="Phone 3" fullWidth value={contactData.phone3} onChange={(e) => handleChange('phone3', e.target.value)} margin="normal" />
                 </Grid>
                 <Grid item xs={12} md={6}>
-                    <TextField
-                        label="Email"
-                        fullWidth
-                        type="email"
-                        value={contactData.email}
-                        onChange={(e) => handleChange('email', e.target.value)}
-                        margin="normal"
-                    />
+                    <TextField label="Email" fullWidth type="email" value={contactData.email} onChange={(e) => handleChange('email', e.target.value)} margin="normal" />
                 </Grid>
                 <Grid item xs={12} md={6}>
-                    <TextField
-                        label="Working Hours"
-                        fullWidth
-                        value={contactData.hours}
-                        onChange={(e) => handleChange('hours', e.target.value)}
-                        margin="normal"
-                    />
+                    <TextField label="Working Hours" fullWidth value={contactData.hours} onChange={(e) => handleChange('hours', e.target.value)} margin="normal" />
                 </Grid>
             </Grid>
 

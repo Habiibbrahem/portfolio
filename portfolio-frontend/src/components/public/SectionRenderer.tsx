@@ -7,22 +7,16 @@ import {
     Card,
     CardMedia,
     CardContent,
-    LinearProgress,
+    Button,
+    TextField,
+    Alert,
 } from '@mui/material';
+import dayjs from 'dayjs';
+import { useState } from 'react';
 import HeroSection from './sections/HeroSection';
 import api from '../../api/client';
 
-interface ServiceItem {
-    title: string;
-    description: string;
-    backgroundImage: string;
-}
-
-// Dedicated fetchers
-const getHero = async () => {
-    const { data } = await api.get('/cms/hero');
-    return data;
-};
+const getHero = async () => (await api.get('/cms/hero')).data;
 
 const getNews = async () => {
     try {
@@ -45,106 +39,171 @@ const getServices = async () => {
 const getContact = async () => {
     try {
         const { data } = await api.get('/cms/contact');
-        return data.data || {};
+        return data.data;
     } catch {
-        return {
-            addressLine1: 'RUE IBN MAJ Z.I. SAINT GOBAIN',
-            addressLine2: 'Megrine BEN AROUS 2014 Tunisie',
-            phone1: '+ 216 71 428 807',
-            phone2: '+ 216 71 428 851',
-            phone3: '+ 216 71 296 152',
-            email: 'info.snc@snrc.com.tn',
-            hours: 'Monday - Saturday: 9:00 - 18:00',
-        };
+        return {};
     }
 };
 
 export default function SectionRenderer() {
-    const { data: heroSection } = useQuery({
-        queryKey: ['hero'],
-        queryFn: getHero,
-    });
+    const { data: hero } = useQuery({ queryKey: ['hero'], queryFn: getHero });
+    const { data: news } = useQuery({ queryKey: ['news'], queryFn: getNews });
+    const { data: servicesSection } = useQuery({ queryKey: ['services'], queryFn: getServices });
+    const { data: contactData } = useQuery({ queryKey: ['contact'], queryFn: getContact });
 
-    const { data: newsSection, isLoading: newsLoading } = useQuery({
-        queryKey: ['news'],
-        queryFn: getNews,
-        staleTime: 1000 * 60 * 5,
-    });
+    // Sort news by date descending (newest first)
+    const sortedNewsItems = [...(news?.data?.items || [])].sort((a: any, b: any) =>
+        new Date(b.date || Date.now()).getTime() - new Date(a.date || Date.now()).getTime()
+    );
 
-    const { data: servicesSection } = useQuery({
-        queryKey: ['services'],
-        queryFn: getServices,
-    });
+    const services = servicesSection?.data?.services || [];
 
-    const { data: contactData } = useQuery({
-        queryKey: ['contact'],
-        queryFn: getContact,
-    });
+    // Show More state
+    const [showAllNews, setShowAllNews] = useState(false);
+    const initialCount = 6;
+    const visibleNews = showAllNews ? sortedNewsItems : sortedNewsItems.slice(0, initialCount);
+    const hasMoreNews = sortedNewsItems.length > initialCount;
 
-    const hero = heroSection?.published !== false ? heroSection : null;
-    const newsItems = newsSection?.data?.items?.filter((item: any) => item.title?.trim()) || [];
-    const services: ServiceItem[] = servicesSection?.data?.services || [];
+    // Contact form state
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        phone: '',
+        message: '',
+    });
+    const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSubmitStatus('loading');
+
+        try {
+            await api.post('/contact-messages', formData);
+            setSubmitStatus('success');
+            setFormData({ name: '', email: '', phone: '', message: '' });
+            setTimeout(() => setSubmitStatus('idle'), 5000);
+        } catch (err) {
+            setSubmitStatus('error');
+            setTimeout(() => setSubmitStatus('idle'), 5000);
+        }
+    };
 
     return (
-        <Box component="main">
-            {/* 1. HERO */}
+        <Box>
             {hero && <HeroSection data={hero.data} />}
 
-            {/* 2. NEWS SECTION */}
-            {newsLoading && <LinearProgress />}
-            {newsItems.length > 0 && (
-                <Box sx={{ py: { xs: 8, md: 12 }, bgcolor: 'background.paper' }}>
+            {/* Latest News */}
+            {sortedNewsItems.length > 0 && (
+                <Box sx={{ py: 12, bgcolor: 'background.default' }}>
                     <Container maxWidth="lg">
                         <Typography
                             variant="h4"
-                            fontWeight="bold"
+                            align="center"
                             color="primary.main"
-                            textAlign="center"
-                            mb={6}
+                            mb={8}
+                            sx={{ position: 'relative' }}
                         >
-                            LATEST NEWS
+                            Latest News
+                            <Box sx={{ height: 4, width: 80, bgcolor: 'secondary.main', mx: 'auto', mt: 2 }} />
                         </Typography>
 
-                        <Grid container spacing={4}>
-                            {newsItems.map((item: any, index: number) => (
-                                <Grid item xs={12} sm={6} md={4} key={index}>
-                                    <Card
-                                        sx={{
-                                            height: '100%',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            boxShadow: 3,
-                                            transition: 'transform 0.3s',
-                                            '&:hover': { transform: 'translateY(-8px)' },
-                                        }}
-                                    >
-                                        {item.image ? (
-                                            <CardMedia
-                                                component="img"
-                                                height="200"
-                                                image={`${item.image}?w=600&h=400&fit=crop`}
-                                                alt={item.title}
-                                            />
-                                        ) : (
-                                            <Box
-                                                sx={{
-                                                    height: 200,
-                                                    bgcolor: 'grey.300',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                }}
-                                            >
-                                                <Typography variant="h6" color="text.secondary">
-                                                    No Image
-                                                </Typography>
-                                            </Box>
-                                        )}
-                                        <CardContent sx={{ flexGrow: 1 }}>
+                        <Box
+                            sx={{
+                                display: 'grid',
+                                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+                                gap: 4,
+                            }}
+                        >
+                            {visibleNews.map((item: any) => (
+                                <Box key={item.id}>
+                                    <Card sx={{ height: '100%', borderRadius: 4, overflow: 'hidden', boxShadow: 3 }}>
+                                        <Box sx={{ height: 240, position: 'relative' }}>
+                                            {item.image ? (
+                                                <img
+                                                    src={`${item.image}?w=600&h=400&fit=crop`}
+                                                    alt={item.title}
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                />
+                                            ) : (
+                                                <Box
+                                                    sx={{
+                                                        height: '100%',
+                                                        bgcolor: 'grey.300',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                    }}
+                                                >
+                                                    <Typography variant="h6" color="text.secondary">
+                                                        No Image
+                                                    </Typography>
+                                                </Box>
+                                            )}
+                                        </Box>
+                                        <CardContent>
                                             <Typography variant="h6" fontWeight="bold" gutterBottom>
                                                 {item.title}
                                             </Typography>
+                                            <Typography variant="caption" color="text.secondary">
+                                                {dayjs(item.date || Date.now()).format('MMMM D, YYYY')}
+                                            </Typography>
                                         </CardContent>
+                                    </Card>
+                                </Box>
+                            ))}
+                        </Box>
+
+                        {hasMoreNews && !showAllNews && (
+                            <Box sx={{ textAlign: 'center', mt: 8 }}>
+                                <Button
+                                    variant="contained"
+                                    size="large"
+                                    onClick={() => setShowAllNews(true)}
+                                    sx={{
+                                        px: 6,
+                                        py: 2,
+                                        borderRadius: 12,
+                                        bgcolor: 'secondary.main',
+                                        color: 'black',
+                                        fontWeight: 600,
+                                        '&:hover': { bgcolor: 'secondary.dark' },
+                                    }}
+                                >
+                                    Show More News
+                                </Button>
+                            </Box>
+                        )}
+                    </Container>
+                </Box>
+            )}
+
+            {/* Our Services - Icon Cards */}
+            {services.length > 0 && (
+                <Box sx={{ py: 12, bgcolor: 'grey.50' }}>
+                    <Container maxWidth="lg">
+                        <Typography
+                            variant="h4"
+                            align="center"
+                            color="primary.main"
+                            mb={8}
+                            sx={{ position: 'relative' }}
+                        >
+                            Our Services
+                            <Box sx={{ height: 4, width: 80, bgcolor: 'secondary.main', mx: 'auto', mt: 2 }} />
+                        </Typography>
+                        <Grid container spacing={6}>
+                            {services.map((s: any, i: number) => (
+                                <Grid item xs={12} md={4} key={i}>
+                                    <Card sx={{ textAlign: 'center', p: 6, height: '100%' }}>
+                                        <Box sx={{ fontSize: 80, color: 'secondary.main', mb: 3 }}>🔨</Box>
+                                        <Typography variant="h5" fontWeight="bold" mb={2}>
+                                            {s.title}
+                                        </Typography>
+                                        <Typography color="text.secondary">{s.description}</Typography>
                                     </Card>
                                 </Grid>
                             ))}
@@ -153,190 +212,142 @@ export default function SectionRenderer() {
                 </Box>
             )}
 
-            {/* 3. SERVICES SECTION */}
-            {services.length > 0 && (
-                <Box sx={{ py: { xs: 8, md: 12 } }}>
-                    <Container maxWidth="lg">
-                        <Typography
-                            variant="h3"
-                            component="h2"
-                            align="center"
-                            fontWeight={700}
-                            color="primary.main"
-                            gutterBottom
-                            sx={{ mb: { xs: 10, md: 14 } }}
-                        >
-                            Our Services
-                        </Typography>
-
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 12, md: 16 } }}>
-                            {services.map((service, index) => {
-                                const isOdd = index % 2 === 0;
-
-                                return (
-                                    <Box
-                                        key={index}
-                                        sx={{
-                                            position: 'relative',
-                                            height: { xs: 500, md: 650 },
-                                            borderRadius: 5,
-                                            overflow: 'hidden',
-                                            boxShadow: '0 25px 50px rgba(0,0,0,0.15)',
-                                            backgroundImage: service.backgroundImage ? `url(${service.backgroundImage})` : 'none',
-                                            backgroundSize: 'cover',
-                                            backgroundPosition: 'center',
-                                            '&::before': {
-                                                content: '""',
-                                                position: 'absolute',
-                                                inset: 0,
-                                                background: 'linear-gradient(to right, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.6) 100%)',
-                                                zIndex: 1,
-                                            },
-                                        }}
-                                    >
-                                        <Container
-                                            sx={{
-                                                position: 'relative',
-                                                zIndex: 2,
-                                                height: '100%',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                            }}
-                                        >
-                                            <Box
-                                                sx={{
-                                                    maxWidth: { xs: '100%', md: '70%' },
-                                                    color: 'white',
-                                                    textAlign: isOdd ? 'left' : 'right',
-                                                    ml: isOdd ? 0 : 'auto',
-                                                    mr: isOdd ? 'auto' : 0,
-                                                    p: { xs: 4, md: 6 },
-                                                }}
-                                            >
-                                                <Typography
-                                                    variant="h2"
-                                                    fontWeight={900}
-                                                    gutterBottom
-                                                    sx={{
-                                                        fontSize: { xs: '2.8rem', md: '4.5rem' },
-                                                        lineHeight: 1.1,
-                                                        textShadow: '4px 4px 12px rgba(0,0,0,0.9)',
-                                                        mb: 4,
-                                                    }}
-                                                >
-                                                    {service.title}
-                                                </Typography>
-
-                                                <Typography
-                                                    variant="h5"
-                                                    sx={{
-                                                        fontSize: { xs: '1.2rem', md: '1.5rem' },
-                                                        lineHeight: 1.8,
-                                                        textShadow: '2px 2px 8px rgba(0,0,0,0.9)',
-                                                        opacity: 0.95,
-                                                    }}
-                                                >
-                                                    {service.description}
-                                                </Typography>
-                                            </Box>
-                                        </Container>
-
-                                        {!service.backgroundImage && (
-                                            <Box
-                                                sx={{
-                                                    position: 'absolute',
-                                                    inset: 0,
-                                                    bgcolor: 'grey.400',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    zIndex: 0,
-                                                }}
-                                            >
-                                                <Typography variant="h5" color="text.secondary">
-                                                    No image uploaded
-                                                </Typography>
-                                            </Box>
-                                        )}
-                                    </Box>
-                                );
-                            })}
-                        </Box>
-                    </Container>
-                </Box>
-            )}
-
-            {/* 4. CONTACT INFO SECTION */}
-            <Box
-                sx={{
-                    py: { xs: 10, md: 16 },
-                    bgcolor: 'background.default',
-                    position: 'relative',
-                    '&::before': {
-                        content: '""',
-                        position: 'absolute',
-                        inset: 0,
-                        background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.6) 100%)',
-                        zIndex: 0,
-                    },
-                }}
-            >
-                <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+            {/* Get In Touch - PERFECTLY MATCHING TEMPLATE */}
+            <Box sx={{ py: { xs: 10, md: 14 }, bgcolor: 'background.default' }}>
+                <Container maxWidth="lg">
                     <Typography
-                        variant="h3"
+                        variant="h4"
                         align="center"
-                        fontWeight={900}
-                        color="white"
-                        textShadow="4px 4px 16px rgba(0,0,0,0.9)"
-                        gutterBottom
-                        sx={{ mb: { xs: 10, md: 14 } }}
+                        color="primary.main"
+                        mb={10}
+                        sx={{ position: 'relative' }}
                     >
-                        Contact Us
+                        Get In Touch
+                        <Box sx={{ height: 4, width: 80, bgcolor: 'secondary.main', mx: 'auto', mt: 2 }} />
                     </Typography>
 
-                    <Grid container spacing={6} justifyContent="center">
-                        <Grid item xs={12} md={8} lg={6}>
+                    <Grid container spacing={6} alignItems="stretch">
+                        {/* Form - Left Side */}
+                        <Grid item xs={12} md={6}>
                             <Box
+                                component="form"
+                                onSubmit={handleSubmit}
                                 sx={{
-                                    bgcolor: 'rgba(255,255,255,0.94)',
-                                    p: { xs: 5, md: 8 },
-                                    borderRadius: 5,
-                                    boxShadow: '0 25px 50px rgba(0,0,0,0.25)',
-                                    backdropFilter: 'blur(12px)',
+                                    bgcolor: 'white',
+                                    p: { xs: 4, md: 6 },
+                                    borderRadius: 4,
+                                    boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                                    height: '100%',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'space-between',
                                 }}
                             >
-                                <Typography variant="h5" fontWeight={700} color="primary.main" mb={5} align="center">
-                                    Get in Touch
-                                </Typography>
+                                {submitStatus === 'success' && (
+                                    <Alert severity="success" sx={{ mb: 3 }}>
+                                        Message sent successfully! We will reply soon.
+                                    </Alert>
+                                )}
+                                {submitStatus === 'error' && (
+                                    <Alert severity="error" sx={{ mb: 3 }}>
+                                        Failed to send message. Please try again.
+                                    </Alert>
+                                )}
 
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 3 }}>
-                                        <Typography variant="h6" color="secondary.main">📍</Typography>
-                                        <Box>
-                                            <Typography variant="h6" fontWeight={600}>{contactData?.addressLine1}</Typography>
-                                            <Typography>{contactData?.addressLine2}</Typography>
-                                        </Box>
-                                    </Box>
-
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                                        <Typography variant="h6" color="secondary.main">📞</Typography>
-                                        <Box>
-                                            <Typography>{contactData?.phone1}</Typography>
-                                            <Typography>{contactData?.phone2}</Typography>
-                                            <Typography>{contactData?.phone3}</Typography>
-                                        </Box>
-                                    </Box>
-
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                                        <Typography variant="h6" color="secondary.main">✉️</Typography>
-                                        <Typography>{contactData?.email}</Typography>
-                                    </Box>
-
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                                        <Typography variant="h6" color="secondary.main">🕒</Typography>
-                                        <Typography>{contactData?.hours}</Typography>
-                                    </Box>
+                                <Box sx={{ display: 'grid', gap: 3 }}>
+                                    <TextField
+                                        placeholder="Name"
+                                        name="name"
+                                        value={formData.name}
+                                        onChange={handleChange}
+                                        required
+                                        fullWidth
+                                        variant="standard"
+                                        InputProps={{ disableUnderline: false }}
+                                        sx={{ '& .MuiInput-underline:before': { borderBottomColor: 'grey.400' } }}
+                                    />
+                                    <TextField
+                                        placeholder="Email"
+                                        name="email"
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        required
+                                        fullWidth
+                                        variant="standard"
+                                    />
+                                    <TextField
+                                        placeholder="Phone"
+                                        name="phone"
+                                        value={formData.phone}
+                                        onChange={handleChange}
+                                        fullWidth
+                                        variant="standard"
+                                    />
+                                    <TextField
+                                        placeholder="Message"
+                                        name="message"
+                                        multiline
+                                        rows={5}
+                                        value={formData.message}
+                                        onChange={handleChange}
+                                        required
+                                        fullWidth
+                                        variant="standard"
+                                    />
                                 </Box>
+
+                                <Button
+                                    type="submit"
+                                    variant="contained"
+                                    size="large"
+                                    disabled={submitStatus === 'loading'}
+                                    sx={{
+                                        mt: 4,
+                                        py: 2,
+                                        bgcolor: 'secondary.main',
+                                        color: 'black',
+                                        fontWeight: 700,
+                                        borderRadius: 3,
+                                        '&:hover': { bgcolor: 'secondary.dark' },
+                                    }}
+                                >
+                                    {submitStatus === 'loading' ? 'Sending...' : 'Send Message'}
+                                </Button>
+                            </Box>
+                        </Grid>
+
+                        {/* Image - Right Side */}
+                        <Grid item xs={12} md={6}>
+                            <Box
+                                sx={{
+                                    height: { xs: 400, md: '100%' },
+                                    borderRadius: 4,
+                                    overflow: 'hidden',
+                                    boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                                }}
+                            >
+                                {contactData?.homeImage ? (
+                                    <img
+                                        src={contactData.homeImage}
+                                        alt="Contact us"
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    />
+                                ) : (
+                                    <Box
+                                        sx={{
+                                            height: '100%',
+                                            bgcolor: 'grey.300',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}
+                                    >
+                                        <Typography variant="h5" color="text.secondary">
+                                            No image uploaded yet
+                                        </Typography>
+                                    </Box>
+                                )}
                             </Box>
                         </Grid>
                     </Grid>

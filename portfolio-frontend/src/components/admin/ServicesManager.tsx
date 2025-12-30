@@ -11,6 +11,7 @@ import {
     Paper,
     IconButton,
     Grid,
+    MenuItem,
 } from '@mui/material';
 import {
     Add as AddIcon,
@@ -28,6 +29,7 @@ interface ServiceItem {
     title: string;
     description: string;
     backgroundImage: string;
+    icon: string; // New: icon name (e.g., "Construction", "Build", "DesignServices")
 }
 
 interface ServicesSection {
@@ -38,6 +40,17 @@ interface ServicesSection {
     };
     published: boolean;
 }
+
+const iconOptions = [
+    { value: 'Construction', label: 'Construction (Hard Hat)' },
+    { value: 'Build', label: 'Build (Tools)' },
+    { value: 'DesignServices', label: 'Design Services' },
+    { value: 'Engineering', label: 'Engineering' },
+    { value: 'HomeRepairService', label: 'Home Repair' },
+    { value: 'Architecture', label: 'Architecture' },
+    { value: 'Handyman', label: 'Handyman' },
+    { value: 'Roofing', label: 'Roofing' },
+];
 
 const getServices = async (): Promise<ServicesSection> => {
     try {
@@ -64,7 +77,7 @@ const updateServices = async (updatedData: { services: ServiceItem[] }) => {
 export default function ServicesManager() {
     const queryClient = useQueryClient();
     const [savedServices, setSavedServices] = useState<ServiceItem[]>([]);
-    const [draftService, setDraftService] = useState<ServiceItem | null>(null); // For new service
+    const [draftService, setDraftService] = useState<ServiceItem | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [success, setSuccess] = useState('');
     const [error, setError] = useState('');
@@ -78,6 +91,8 @@ export default function ServicesManager() {
         mutationFn: updateServices,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['services'] });
+            setSuccess('Services saved successfully!');
+            setTimeout(() => setSuccess(''), 4000);
         },
         onError: () => {
             setError('Failed to save. Please try again.');
@@ -87,7 +102,12 @@ export default function ServicesManager() {
 
     useEffect(() => {
         if (servicesSection?.data?.services) {
-            setSavedServices(servicesSection.data.services);
+            // Ensure old services have icon (default to first)
+            const services = servicesSection.data.services.map((s: any) => ({
+                ...s,
+                icon: s.icon || 'Construction',
+            }));
+            setSavedServices(services);
         }
     }, [servicesSection]);
 
@@ -97,6 +117,7 @@ export default function ServicesManager() {
             title: '',
             description: '',
             backgroundImage: '',
+            icon: 'Construction',
         });
     };
 
@@ -114,8 +135,6 @@ export default function ServicesManager() {
         mutation.mutate({ services: newList });
         setSavedServices(newList);
         setDraftService(null);
-        setSuccess('Service created successfully!');
-        setTimeout(() => setSuccess(''), 4000);
     };
 
     const startEditing = (id: string) => {
@@ -138,7 +157,7 @@ export default function ServicesManager() {
         const newList = savedServices.filter((s) => s.id !== id);
         setSavedServices(newList);
         mutation.mutate({ services: newList });
-        setSuccess('Service deleted permanently');
+        setSuccess('Service deleted');
         setTimeout(() => setSuccess(''), 4000);
     };
 
@@ -216,6 +235,22 @@ export default function ServicesManager() {
                         margin="normal"
                         sx={{ mb: 3 }}
                     />
+
+                    <TextField
+                        select
+                        label="Icon"
+                        fullWidth
+                        value={draftService.icon}
+                        onChange={(e) => setDraftService({ ...draftService, icon: e.target.value })}
+                        margin="normal"
+                        sx={{ mb: 3 }}
+                    >
+                        {iconOptions.map((option) => (
+                            <MenuItem key={option.value} value={option.value}>
+                                {option.label}
+                            </MenuItem>
+                        ))}
+                    </TextField>
 
                     <TextField
                         label="Description"
@@ -328,6 +363,23 @@ export default function ServicesManager() {
                                     disabled={editingId !== service.id}
                                     sx={{ mb: 3 }}
                                 />
+
+                                <TextField
+                                    select
+                                    label="Icon"
+                                    fullWidth
+                                    value={service.icon}
+                                    onChange={(e) => updateService(service.id, 'icon', e.target.value)}
+                                    margin="normal"
+                                    disabled={editingId !== service.id}
+                                    sx={{ mb: 3 }}
+                                >
+                                    {iconOptions.map((option) => (
+                                        <MenuItem key={option.value} value={option.value}>
+                                            {option.label}
+                                        </MenuItem>
+                                    ))}
+                                </TextField>
 
                                 <TextField
                                     label="Description"

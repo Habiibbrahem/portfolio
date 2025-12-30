@@ -14,6 +14,9 @@ import {
     CardMedia,
     CardContent,
 } from '@mui/material';
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DragHandleIcon from '@mui/icons-material/DragHandle';
@@ -25,7 +28,7 @@ import {
     useSensor,
     useSensors,
 } from '@dnd-kit/core';
-import type { DragEndEvent } from '@dnd-kit/sortable'; // ← NEW: Import type here
+import type { DragEndEvent } from '@dnd-kit/sortable';
 import {
     arrayMove,
     SortableContext,
@@ -43,6 +46,7 @@ interface NewsItem {
     id: string;
     title: string;
     image: string;
+    date: string; // ISO string
 }
 
 const defaultNewsData = { items: [] };
@@ -105,6 +109,9 @@ function SortableItem(props: { item: NewsItem; onRemove: (id: string) => void })
             )}
             <CardContent sx={{ flexGrow: 1 }}>
                 <Typography variant="subtitle1">{item.title || 'Untitled News'}</Typography>
+                <Typography variant="caption" color="text.secondary">
+                    {dayjs(item.date).format('MMMM D, YYYY')}
+                </Typography>
             </CardContent>
             <IconButton color="error" onClick={() => onRemove(item.id)}>
                 <DeleteIcon />
@@ -117,6 +124,7 @@ export default function NewsManager() {
     const queryClient = useQueryClient();
     const [items, setItems] = useState<NewsItem[]>([]);
     const [newTitle, setNewTitle] = useState('');
+    const [newDate, setNewDate] = useState(dayjs());
     const [uploading, setUploading] = useState(false);
     const [success, setSuccess] = useState('');
     const [error, setError] = useState('');
@@ -133,17 +141,23 @@ export default function NewsManager() {
             setSuccess('News updated successfully!');
             setTimeout(() => setSuccess(''), 4000);
         },
+        onError: () => {
+            setError('Save failed');
+            setTimeout(() => setError(''), 5000);
+        },
     });
 
     useEffect(() => {
         if (newsSection?.data?.items) {
-            setItems(
-                newsSection.data.items.map((item: any) => ({
-                    id: item.id || Math.random().toString(36).substr(2, 9),
-                    title: item.title || '',
-                    image: item.image || '',
-                }))
-            );
+            const loadedItems = newsSection.data.items.map((item: any) => ({
+                id: item.id || Math.random().toString(36).substr(2, 9),
+                title: item.title || '',
+                image: item.image || '',
+                date: item.date || dayjs().toISOString(),
+            }));
+            // Sort by date descending
+            loadedItems.sort((a: NewsItem, b: NewsItem) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            setItems(loadedItems);
         }
     }, [newsSection]);
 
@@ -164,14 +178,19 @@ export default function NewsManager() {
     };
 
     const addNewsItem = () => {
-        if (!newTitle.trim()) return;
+        if (!newTitle.trim()) {
+            setError('Title is required');
+            return;
+        }
         const newItem: NewsItem = {
             id: Math.random().toString(36).substr(2, 9),
             title: newTitle.trim(),
             image: '',
+            date: newDate.toISOString(),
         };
-        setItems([...items, newItem]);
+        setItems([newItem, ...items]); // Add to top
         setNewTitle('');
+        setNewDate(dayjs());
     };
 
     const uploadImageForItem = async (file: File, itemId: string) => {
@@ -197,78 +216,87 @@ export default function NewsManager() {
     if (isLoading) return <CircularProgress />;
 
     return (
-        <Paper elevation={4} sx={{ p: { xs: 4, md: 6 }, maxWidth: 1000, mx: 'auto', borderRadius: 4 }}>
-            <Typography variant="h4" fontWeight="bold" color="primary" mb={5}>
-                News Manager
-            </Typography>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <Paper elevation={4} sx={{ p: { xs: 4, md: 6 }, maxWidth: 1100, mx: 'auto', borderRadius: 4 }}>
+                <Typography variant="h4" fontWeight="bold" color="primary" mb={5}>
+                    News Manager
+                </Typography>
 
-            {success && <Alert severity="success" sx={{ mb: 3 }}>{success}</Alert>}
-            {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+                {success && <Alert severity="success" sx={{ mb: 3 }}>{success}</Alert>}
+                {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
-            <Grid container spacing={2} sx={{ mb: 4 }}>
-                <Grid item xs={12} sm={8}>
-                    <TextField
-                        label="New News Title"
-                        fullWidth
-                        value={newTitle}
-                        onChange={(e) => setNewTitle(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && addNewsItem()}
-                    />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                    <Button
-                        variant="contained"
-                        fullWidth
-                        onClick={addNewsItem}
-                        disabled={!newTitle.trim()}
-                        sx={{ height: 56 }}
-                    >
-                        Add News
-                    </Button>
-                </Grid>
-            </Grid>
-
-            <Typography variant="h6" sx={{ mb: 3 }}>
-                Current News Items ({items.length})
-            </Typography>
-
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
-                    {items.map((item) => (
-                        <SortableItem key={item.id} item={item} onRemove={removeItem} />
-                    ))}
-                </SortableContext>
-            </DndContext>
-
-            {/* Image upload per item */}
-            {items.map((item) => !item.image && (
-                <Box key={`upload-${item.id}`} sx={{ mt: 2 }}>
-                    <Button
-                        variant="outlined"
-                        component="label"
-                        startIcon={<AddPhotoAlternateIcon />}
-                        disabled={uploading}
-                    >
-                        Upload Image for "{item.title}"
-                        <input
-                            type="file"
-                            hidden
-                            accept="image/*"
-                            onChange={(e) => e.target.files?.[0] && uploadImageForItem(e.target.files[0], item.id)}
+                <Grid container spacing={3} sx={{ mb: 6 }}>
+                    <Grid item xs={12} sm={5}>
+                        <TextField
+                            label="News Title"
+                            fullWidth
+                            value={newTitle}
+                            onChange={(e) => setNewTitle(e.target.value)}
                         />
-                    </Button>
-                </Box>
-            ))}
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                        <DatePicker
+                            label="News Date"
+                            value={newDate}
+                            onChange={(newValue) => newValue && setNewDate(newValue)}
+                            slotProps={{ textField: { fullWidth: true } }}
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={3}>
+                        <Button
+                            variant="contained"
+                            fullWidth
+                            onClick={addNewsItem}
+                            disabled={!newTitle.trim()}
+                            sx={{ height: 56 }}
+                        >
+                            Add News
+                        </Button>
+                    </Grid>
+                </Grid>
 
-            <Button
-                variant="contained"
-                size="large"
-                onClick={handleSave}
-                disabled={mutation.isPending || uploading}
-                sx={{ mt: 6, px: 8, py: 1.5 }}
-            >
-                {mutation.isPending ? 'Saving...' : 'Save News Section'}
-            </Button>
-        </Paper>
+                <Typography variant="h6" sx={{ mb: 3 }}>
+                    Current News Items ({items.length})
+                </Typography>
+
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
+                        {items.map((item) => (
+                            <SortableItem key={item.id} item={item} onRemove={removeItem} />
+                        ))}
+                    </SortableContext>
+                </DndContext>
+
+                {/* Image upload per item */}
+                {items.map((item) => !item.image && (
+                    <Box key={`upload-${item.id}`} sx={{ mt: 2, mb: 3 }}>
+                        <Button
+                            variant="outlined"
+                            component="label"
+                            startIcon={<AddPhotoAlternateIcon />}
+                            disabled={uploading}
+                        >
+                            Upload Image for "{item.title}"
+                            <input
+                                type="file"
+                                hidden
+                                accept="image/*"
+                                onChange={(e) => e.target.files?.[0] && uploadImageForItem(e.target.files[0], item.id)}
+                            />
+                        </Button>
+                    </Box>
+                ))}
+
+                <Button
+                    variant="contained"
+                    size="large"
+                    onClick={handleSave}
+                    disabled={mutation.isPending || uploading}
+                    sx={{ mt: 6, px: 8, py: 1.5 }}
+                >
+                    {mutation.isPending ? 'Saving...' : 'Save All News'}
+                </Button>
+            </Paper>
+        </LocalizationProvider>
     );
 }
