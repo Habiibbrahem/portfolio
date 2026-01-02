@@ -45,8 +45,9 @@ import type { CmsSection } from '../../types/cms';
 interface NewsItem {
     id: string;
     title: string;
+    description: string;  // NEW
     image: string;
-    date: string; // ISO string
+    date: string;
 }
 
 const defaultNewsData = { items: [] };
@@ -112,6 +113,11 @@ function SortableItem(props: { item: NewsItem; onRemove: (id: string) => void })
                 <Typography variant="caption" color="text.secondary">
                     {dayjs(item.date).format('MMMM D, YYYY')}
                 </Typography>
+                {item.description && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        {item.description.substring(0, 60)}{item.description.length > 60 ? '...' : ''}
+                    </Typography>
+                )}
             </CardContent>
             <IconButton color="error" onClick={() => onRemove(item.id)}>
                 <DeleteIcon />
@@ -124,6 +130,7 @@ export default function NewsManager() {
     const queryClient = useQueryClient();
     const [items, setItems] = useState<NewsItem[]>([]);
     const [newTitle, setNewTitle] = useState('');
+    const [newDescription, setNewDescription] = useState('');
     const [newDate, setNewDate] = useState(dayjs());
     const [uploading, setUploading] = useState(false);
     const [success, setSuccess] = useState('');
@@ -152,10 +159,10 @@ export default function NewsManager() {
             const loadedItems = newsSection.data.items.map((item: any) => ({
                 id: item.id || Math.random().toString(36).substr(2, 9),
                 title: item.title || '',
+                description: item.description || '',
                 image: item.image || '',
                 date: item.date || dayjs().toISOString(),
             }));
-            // Sort by date descending
             loadedItems.sort((a: NewsItem, b: NewsItem) => new Date(b.date).getTime() - new Date(a.date).getTime());
             setItems(loadedItems);
         }
@@ -185,11 +192,13 @@ export default function NewsManager() {
         const newItem: NewsItem = {
             id: Math.random().toString(36).substr(2, 9),
             title: newTitle.trim(),
+            description: newDescription.trim(),
             image: '',
             date: newDate.toISOString(),
         };
-        setItems([newItem, ...items]); // Add to top
+        setItems([newItem, ...items]);
         setNewTitle('');
+        setNewDescription('');
         setNewDate(dayjs());
     };
 
@@ -217,7 +226,7 @@ export default function NewsManager() {
 
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <Paper elevation={4} sx={{ p: { xs: 4, md: 6 }, maxWidth: 1100, mx: 'auto', borderRadius: 4 }}>
+            <Paper elevation={4} sx={{ p: { xs: 4, md: 6 }, maxWidth: 1200, mx: 'auto', borderRadius: 4 }}>
                 <Typography variant="h4" fontWeight="bold" color="primary" mb={5}>
                     News Manager
                 </Typography>
@@ -253,6 +262,17 @@ export default function NewsManager() {
                             Add News
                         </Button>
                     </Grid>
+                    <Grid item xs={12}>
+                        <TextField
+                            label="Description"
+                            fullWidth
+                            multiline
+                            rows={4}
+                            value={newDescription}
+                            onChange={(e) => setNewDescription(e.target.value)}
+                            placeholder="Full news description (shown in modal)"
+                        />
+                    </Grid>
                 </Grid>
 
                 <Typography variant="h6" sx={{ mb: 3 }}>
@@ -267,7 +287,6 @@ export default function NewsManager() {
                     </SortableContext>
                 </DndContext>
 
-                {/* Image upload per item */}
                 {items.map((item) => !item.image && (
                     <Box key={`upload-${item.id}`} sx={{ mt: 2, mb: 3 }}>
                         <Button
