@@ -56,7 +56,6 @@ const getContact = async () => {
     } catch { return {}; }
 };
 
-// Icon mapping — same as in ServicesManager
 const iconMap: { [key: string]: React.ReactElement } = {
     Construction: <Construction fontSize="large" />,
     Build: <Build fontSize="large" />,
@@ -93,7 +92,6 @@ export default function SectionRenderer() {
     const visibleNews = showAllNews ? sortedNewsItems : sortedNewsItems.slice(0, initialCount);
     const hasMoreNews = sortedNewsItems.length > initialCount;
 
-    // Contact form state
     const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' });
     const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
@@ -115,7 +113,6 @@ export default function SectionRenderer() {
         }
     };
 
-    // Modal state
     const [openModal, setOpenModal] = useState(false);
     const [selectedItem, setSelectedItem] = useState<any>(null);
     const [modalType, setModalType] = useState<'news' | 'service'>('news');
@@ -153,8 +150,8 @@ export default function SectionRenderer() {
                         >
                             {visibleNews.map((item: any) => {
                                 const desc = item.description || '';
-                                const isLong = desc.length > 120;
-                                const preview = isLong ? desc.substring(0, 120).trim() + '...' : desc;
+                                const isLong = desc.length > 20;
+                                const preview = isLong ? desc.substring(0, 20).trim() + '...' : desc;
 
                                 return (
                                     <Box
@@ -169,8 +166,8 @@ export default function SectionRenderer() {
                                             },
                                         }}
                                     >
-                                        <Card sx={{ height: '100%', minHeight: 420, display: 'flex', flexDirection: 'column', borderRadius: 4, overflow: 'hidden', boxShadow: 3 }}>
-                                            <Box sx={{ height: 240, position: 'relative' }}>
+                                        <Card sx={{ height: 420, display: 'flex', flexDirection: 'column', borderRadius: 4, overflow: 'hidden', boxShadow: 3 }}>
+                                            <Box sx={{ height: 240 }}>
                                                 {item.image ? (
                                                     <img
                                                         src={`${item.image}?w=600&h=400&fit=crop`}
@@ -178,38 +175,13 @@ export default function SectionRenderer() {
                                                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                                     />
                                                 ) : (
-                                                    <Box
-                                                        sx={{
-                                                            height: '100%',
-                                                            bgcolor: 'grey.300',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                        }}
-                                                    >
+                                                    <Box sx={{ height: '100%', bgcolor: 'grey.300', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                                         <Typography variant="h6" color="text.secondary">No Image</Typography>
                                                     </Box>
                                                 )}
-                                                <Box
-                                                    sx={{
-                                                        position: 'absolute',
-                                                        bottom: 0,
-                                                        left: 0,
-                                                        right: 0,
-                                                        bgcolor: 'rgba(0,0,0,0.6)',
-                                                        color: 'white',
-                                                        p: 2,
-                                                        textAlign: 'center',
-                                                        opacity: 0,
-                                                        transition: 'opacity 0.3s ease',
-                                                        pointerEvents: 'none',
-                                                    }}
-                                                >
-                                                    <Typography variant="subtitle2">Read more...</Typography>
-                                                </Box>
                                             </Box>
 
-                                            <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                                            <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 3 }}>
                                                 <Typography
                                                     variant="h6"
                                                     fontWeight="bold"
@@ -237,7 +209,7 @@ export default function SectionRenderer() {
                                                     </Typography>
                                                 )}
 
-                                                <Typography variant="caption" color="text.secondary" sx={{ mt: 'auto', display: 'block' }}>
+                                                <Typography variant="caption" color="text.secondary" sx={{ mt: 'auto' }}>
                                                     {dayjs(item.date || Date.now()).format('MMMM D, YYYY')}
                                                 </Typography>
                                             </CardContent>
@@ -271,7 +243,7 @@ export default function SectionRenderer() {
                 </Box>
             )}
 
-            {/* Our Services - 4 PER ROW, DYNAMIC ICON */}
+            {/* Our Services - 3 cards per row, same height as news cards */}
             {services.length > 0 && (
                 <Box sx={{ py: 12, bgcolor: 'grey.50' }}>
                     <Container maxWidth="lg">
@@ -280,89 +252,94 @@ export default function SectionRenderer() {
                             <Box sx={{ height: 4, width: 80, bgcolor: 'secondary.main', mx: 'auto', mt: 2 }} />
                         </Typography>
 
-                        <Grid container spacing={4}>
+                        <Box
+                            sx={{
+                                display: 'grid',
+                                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+                                gap: 4,
+                            }}
+                        >
                             {services.map((service: any, index: number) => {
                                 const desc = service.description || '';
                                 const isLong = desc.length > 20;
                                 const preview = isLong ? desc.substring(0, 20).trim() + '...' : desc;
 
-                                // Get the correct icon from iconMap, fallback to Construction
                                 const SelectedIcon = iconMap[service.icon] || iconMap['Construction'];
 
                                 return (
-                                    <Grid item xs={12} sm={6} md={3} key={index}>
-                                        <Box
-                                            onClick={() => handleOpenModal(service, 'service')}
+                                    <Box
+                                        key={index}
+                                        onClick={() => handleOpenModal(service, 'service')}
+                                        sx={{
+                                            cursor: 'pointer',
+                                            transition: 'all 0.3s ease',
+                                            '&:hover': {
+                                                transform: 'translateY(-12px)',
+                                                boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+                                            },
+                                        }}
+                                    >
+                                        <Card
                                             sx={{
-                                                cursor: 'pointer',
-                                                transition: 'all 0.3s ease',
-                                                '&:hover': {
-                                                    transform: 'translateY(-12px)',
-                                                    boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
-                                                },
+                                                height: 420,
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                textAlign: 'center',
+                                                p: 4,
+                                                borderRadius: 4,
+                                                boxShadow: 3,
                                             }}
                                         >
-                                            <Card
+                                            <Box sx={{ fontSize: 80, color: 'secondary.main', mb: 4 }}>
+                                                {SelectedIcon}
+                                            </Box>
+
+                                            <Typography
+                                                variant="h5"
+                                                fontWeight="bold"
+                                                gutterBottom
                                                 sx={{
-                                                    height: 340,
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    justifyContent: 'center',
-                                                    alignItems: 'center',
-                                                    textAlign: 'center',
-                                                    p: 4,
-                                                    borderRadius: 4,
-                                                    boxShadow: 3,
+                                                    height: 90,
+                                                    px: 2,
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    display: '-webkit-box',
+                                                    WebkitLineClamp: 3,
+                                                    WebkitBoxOrient: 'vertical',
                                                 }}
                                             >
-                                                {/* Dynamic icon selected by admin */}
-                                                <Box sx={{ fontSize: 80, color: 'secondary.main', mb: 3 }}>
-                                                    {SelectedIcon}
-                                                </Box>
+                                                {service.title}
+                                            </Typography>
 
-                                                <Typography
-                                                    variant="h5"
-                                                    fontWeight="bold"
-                                                    gutterBottom
-                                                    sx={{
-                                                        minHeight: 72,
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        px: 2,
-                                                    }}
-                                                >
-                                                    {service.title}
+                                            <Typography
+                                                variant="body2"
+                                                color="text.secondary"
+                                                sx={{
+                                                    flexGrow: 1,
+                                                    mb: 3,
+                                                    px: 2,
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    display: '-webkit-box',
+                                                    WebkitLineClamp: 4,
+                                                    WebkitBoxOrient: 'vertical',
+                                                }}
+                                            >
+                                                {preview}
+                                            </Typography>
+
+                                            {isLong && (
+                                                <Typography variant="caption" sx={{ color: 'secondary.main', fontWeight: 600, mt: 'auto' }}>
+                                                    Read more...
                                                 </Typography>
-
-                                                <Typography
-                                                    variant="body2"
-                                                    color="text.secondary"
-                                                    sx={{
-                                                        minHeight: 80,
-                                                        mb: 2,
-                                                        px: 2,
-                                                        overflow: 'hidden',
-                                                        textOverflow: 'ellipsis',
-                                                        display: '-webkit-box',
-                                                        WebkitLineClamp: 4,
-                                                        WebkitBoxOrient: 'vertical',
-                                                    }}
-                                                >
-                                                    {preview}
-                                                </Typography>
-
-                                                {isLong && (
-                                                    <Typography variant="caption" sx={{ color: 'secondary.main', fontWeight: 600 }}>
-                                                        Read more...
-                                                    </Typography>
-                                                )}
-                                            </Card>
-                                        </Box>
-                                    </Grid>
+                                            )}
+                                        </Card>
+                                    </Box>
                                 );
                             })}
-                        </Grid>
+                        </Box>
                     </Container>
                 </Box>
             )}
