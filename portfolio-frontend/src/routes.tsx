@@ -14,7 +14,7 @@ import Home from './pages/public/Home';
 import Contact from './pages/public/Contact';
 import Services from './pages/public/Services';
 import ProtectedRoute from './components/ProtectedRoute';
-
+import SettingsManager from './components/admin/SettingsManager';
 export default function AppRoutes() {
     return (
         <Routes>
@@ -42,6 +42,7 @@ export default function AppRoutes() {
                 <Route path="services" element={<ServicesManager />} />
                 <Route path="messages" element={<MessagesManager />} />
                 <Route path="contact" element={<ContactManager />} />
+                <Route path="settings" element={<SettingsManager />} />
             </Route>
         </Routes>
     );

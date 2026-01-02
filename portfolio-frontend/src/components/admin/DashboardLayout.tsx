@@ -29,7 +29,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useQuery } from '@tanstack/react-query';
 import api from '../../api/client';
-
+import SettingsIcon from '@mui/icons-material/Settings';
 const drawerWidth = 240;
 
 export default function DashboardLayout() {
@@ -56,7 +56,7 @@ export default function DashboardLayout() {
     { text: 'Overview', icon: <DashboardIcon />, path: '/admin/dashboard' },
     { text: 'Navigation', icon: <NavigationIcon />, path: '/admin/dashboard/navbar' },
     { text: 'Content', icon: <ContentCopyIcon />, path: '/admin/dashboard/content' },
-    { text: 'News', icon: <ArticleIcon />, path: '/admin/dashboard/news' }, // ← NEW
+    { text: 'News', icon: <ArticleIcon />, path: '/admin/dashboard/news' },
     { text: 'Social Media', icon: <ShareIcon />, path: '/admin/dashboard/social' },
     { text: 'Media', icon: <UploadFileIcon />, path: '/admin/dashboard/uploads' },
     { text: 'Services', icon: <DesignServicesIcon />, path: '/admin/dashboard/services' },
@@ -70,6 +70,7 @@ export default function DashboardLayout() {
       ),
       path: '/admin/dashboard/messages',
     },
+    { text: 'Settings', icon: <SettingsIcon />, path: '/admin/dashboard/settings' }, // ← NEW
   ];
 
   const handleNav = (path: string) => {

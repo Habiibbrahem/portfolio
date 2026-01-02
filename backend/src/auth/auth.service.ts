@@ -1,5 +1,9 @@
 // src/auth/auth.service.ts
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+    Injectable,
+    UnauthorizedException,
+    BadRequestException,
+} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -37,7 +41,6 @@ export class AuthService {
 
         const accessToken = this.jwtService.sign(payload);
 
-        // FIX: Use any to bypass strict typing
         const refreshTokenExpiresIn: any = this.configService.get('REFRESH_TOKEN_EXPIRES_IN') ?? '7d';
 
         const refreshTokenOptions: JwtSignOptions = {
@@ -79,5 +82,27 @@ export class AuthService {
         } catch (e) {
             throw new UnauthorizedException('Invalid refresh token');
         }
+    }
+
+    // FIXED: Change Password using UsersService method
+    async changePassword(userId: string, currentPassword: string, newPassword: string) {
+        const user = await this.usersService.findOne(userId);
+        if (!user) {
+            throw new UnauthorizedException('User not found');
+        }
+
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            throw new BadRequestException('Current password is incorrect');
+        }
+
+        if (newPassword.length < 6) {
+            throw new BadRequestException('New password must be at least 6 characters');
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Use the clean method from UsersService
+        await this.usersService.updatePassword(userId, hashedPassword);
     }
 }

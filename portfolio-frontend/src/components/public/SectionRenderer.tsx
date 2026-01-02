@@ -15,6 +15,24 @@ import {
 import dayjs from 'dayjs';
 import { useState } from 'react';
 import CloseIcon from '@mui/icons-material/Close';
+import {
+    Construction,
+    Build,
+    DesignServices,
+    Engineering,
+    HomeRepairService,
+    Architecture,
+    Handyman,
+    Roofing,
+    Plumbing,
+    ElectricalServices,
+    Landscape,
+    Foundation,
+    Apartment,
+    Warehouse,
+    Fence,
+    Garage,
+} from '@mui/icons-material';
 import HeroSection from './sections/HeroSection';
 import api from '../../api/client';
 
@@ -36,6 +54,26 @@ const getContact = async () => {
         const { data } = await api.get('/cms/contact');
         return data.data;
     } catch { return {}; }
+};
+
+// Icon mapping — same as in ServicesManager
+const iconMap: { [key: string]: React.ReactElement } = {
+    Construction: <Construction fontSize="large" />,
+    Build: <Build fontSize="large" />,
+    DesignServices: <DesignServices fontSize="large" />,
+    Engineering: <Engineering fontSize="large" />,
+    HomeRepairService: <HomeRepairService fontSize="large" />,
+    Architecture: <Architecture fontSize="large" />,
+    Handyman: <Handyman fontSize="large" />,
+    Roofing: <Roofing fontSize="large" />,
+    Plumbing: <Plumbing fontSize="large" />,
+    ElectricalServices: <ElectricalServices fontSize="large" />,
+    Landscape: <Landscape fontSize="large" />,
+    Foundation: <Foundation fontSize="large" />,
+    Apartment: <Apartment fontSize="large" />,
+    Warehouse: <Warehouse fontSize="large" />,
+    Fence: <Fence fontSize="large" />,
+    Garage: <Garage fontSize="large" />,
 };
 
 export default function SectionRenderer() {
@@ -233,7 +271,7 @@ export default function SectionRenderer() {
                 </Box>
             )}
 
-            {/* Our Services - 4 PER ROW, FIXED SIZE, ICON ONLY */}
+            {/* Our Services - 4 PER ROW, DYNAMIC ICON */}
             {services.length > 0 && (
                 <Box sx={{ py: 12, bgcolor: 'grey.50' }}>
                     <Container maxWidth="lg">
@@ -247,6 +285,9 @@ export default function SectionRenderer() {
                                 const desc = service.description || '';
                                 const isLong = desc.length > 20;
                                 const preview = isLong ? desc.substring(0, 20).trim() + '...' : desc;
+
+                                // Get the correct icon from iconMap, fallback to Construction
+                                const SelectedIcon = iconMap[service.icon] || iconMap['Construction'];
 
                                 return (
                                     <Grid item xs={12} sm={6} md={3} key={index}>
@@ -263,7 +304,7 @@ export default function SectionRenderer() {
                                         >
                                             <Card
                                                 sx={{
-                                                    height: 340, // Fixed height for all cards
+                                                    height: 340,
                                                     display: 'flex',
                                                     flexDirection: 'column',
                                                     justifyContent: 'center',
@@ -274,9 +315,9 @@ export default function SectionRenderer() {
                                                     boxShadow: 3,
                                                 }}
                                             >
-                                                {/* Admin-selected icon */}
+                                                {/* Dynamic icon selected by admin */}
                                                 <Box sx={{ fontSize: 80, color: 'secondary.main', mb: 3 }}>
-                                                    🔨 {/* Will be dynamic with service.icon */}
+                                                    {SelectedIcon}
                                                 </Box>
 
                                                 <Typography
@@ -284,7 +325,7 @@ export default function SectionRenderer() {
                                                     fontWeight="bold"
                                                     gutterBottom
                                                     sx={{
-                                                        minHeight: 72, // Ensures title area is same height
+                                                        minHeight: 72,
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
@@ -298,7 +339,7 @@ export default function SectionRenderer() {
                                                     variant="body2"
                                                     color="text.secondary"
                                                     sx={{
-                                                        minHeight: 80, // Ensures description area is same height
+                                                        minHeight: 80,
                                                         mb: 2,
                                                         px: 2,
                                                         overflow: 'hidden',
@@ -354,7 +395,6 @@ export default function SectionRenderer() {
                         <CloseIcon />
                     </IconButton>
 
-                    {/* Full background image in modal */}
                     {selectedItem?.backgroundImage && modalType === 'service' && (
                         <Box sx={{ height: { xs: 300, md: 500 } }}>
                             <img

@@ -11,7 +11,6 @@ import {
     Paper,
     IconButton,
     Grid,
-    MenuItem,
 } from '@mui/material';
 import {
     Add as AddIcon,
@@ -21,6 +20,24 @@ import {
     Save as SaveIcon,
     Cancel as CancelIcon,
 } from '@mui/icons-material';
+import {
+    Construction,
+    Build,
+    DesignServices,
+    Engineering,
+    HomeRepairService,
+    Architecture,
+    Handyman,
+    Roofing,
+    Plumbing,
+    ElectricalServices,
+    Landscape,
+    Foundation,
+    Apartment,
+    Warehouse,
+    Fence,
+    Garage,
+} from '@mui/icons-material';
 import { uploadImage } from '../../api/upload';
 import api from '../../api/client';
 
@@ -29,7 +46,7 @@ interface ServiceItem {
     title: string;
     description: string;
     backgroundImage: string;
-    icon: string; // New: icon name (e.g., "Construction", "Build", "DesignServices")
+    icon: string;
 }
 
 interface ServicesSection {
@@ -41,16 +58,26 @@ interface ServicesSection {
     published: boolean;
 }
 
-const iconOptions = [
-    { value: 'Construction', label: 'Construction (Hard Hat)' },
-    { value: 'Build', label: 'Build (Tools)' },
-    { value: 'DesignServices', label: 'Design Services' },
-    { value: 'Engineering', label: 'Engineering' },
-    { value: 'HomeRepairService', label: 'Home Repair' },
-    { value: 'Architecture', label: 'Architecture' },
-    { value: 'Handyman', label: 'Handyman' },
-    { value: 'Roofing', label: 'Roofing' },
-];
+const iconMap: { [key: string]: React.ReactElement } = {
+    Construction: <Construction fontSize="large" />,
+    Build: <Build fontSize="large" />,
+    DesignServices: <DesignServices fontSize="large" />,
+    Engineering: <Engineering fontSize="large" />,
+    HomeRepairService: <HomeRepairService fontSize="large" />,
+    Architecture: <Architecture fontSize="large" />,
+    Handyman: <Handyman fontSize="large" />,
+    Roofing: <Roofing fontSize="large" />,
+    Plumbing: <Plumbing fontSize="large" />,
+    ElectricalServices: <ElectricalServices fontSize="large" />,
+    Landscape: <Landscape fontSize="large" />,
+    Foundation: <Foundation fontSize="large" />,
+    Apartment: <Apartment fontSize="large" />,
+    Warehouse: <Warehouse fontSize="large" />,
+    Fence: <Fence fontSize="large" />,
+    Garage: <Garage fontSize="large" />,
+};
+
+const iconOptions = Object.keys(iconMap);
 
 const getServices = async (): Promise<ServicesSection> => {
     try {
@@ -102,10 +129,9 @@ export default function ServicesManager() {
 
     useEffect(() => {
         if (servicesSection?.data?.services) {
-            // Ensure old services have icon (default to first)
             const services = servicesSection.data.services.map((s: any) => ({
                 ...s,
-                icon: s.icon || 'Construction',
+                icon: s.icon && iconOptions.includes(s.icon) ? s.icon : 'Construction',
             }));
             setSavedServices(services);
         }
@@ -185,6 +211,14 @@ export default function ServicesManager() {
         }
     };
 
+    const selectIcon = (iconName: string, isDraft: boolean = false) => {
+        if (isDraft && draftService) {
+            setDraftService({ ...draftService, icon: iconName });
+        } else if (editingId) {
+            updateService(editingId, 'icon', iconName);
+        }
+    };
+
     if (isLoading) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
@@ -236,21 +270,42 @@ export default function ServicesManager() {
                         sx={{ mb: 3 }}
                     />
 
-                    <TextField
-                        select
-                        label="Icon"
-                        fullWidth
-                        value={draftService.icon}
-                        onChange={(e) => setDraftService({ ...draftService, icon: e.target.value })}
-                        margin="normal"
-                        sx={{ mb: 3 }}
-                    >
-                        {iconOptions.map((option) => (
-                            <MenuItem key={option.value} value={option.value}>
-                                {option.label}
-                            </MenuItem>
+                    <Typography variant="subtitle1" gutterBottom sx={{ mb: 2 }}>
+                        Choose Icon
+                    </Typography>
+                    <Grid container spacing={2} sx={{ mb: 4 }}>
+                        {iconOptions.map((iconName) => (
+                            <Grid item xs={3} sm={2} key={iconName}>
+                                <Box
+                                    onClick={() => selectIcon(iconName, true)}
+                                    sx={{
+                                        height: 100,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        borderRadius: 3,
+                                        border: draftService.icon === iconName ? '3px solid' : '2px dashed',
+                                        borderColor: draftService.icon === iconName ? 'secondary.main' : 'grey.400',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        bgcolor: draftService.icon === iconName ? 'secondary.50' : 'transparent',
+                                        '&:hover': {
+                                            bgcolor: 'grey.100',
+                                            borderColor: 'secondary.main',
+                                        },
+                                    }}
+                                >
+                                    <Box sx={{ fontSize: 48, color: 'primary.main', mb: 1 }}>
+                                        {iconMap[iconName]}
+                                    </Box>
+                                    <Typography variant="caption" color="text.secondary" align="center">
+                                        {iconName}
+                                    </Typography>
+                                </Box>
+                            </Grid>
                         ))}
-                    </TextField>
+                    </Grid>
 
                     <TextField
                         label="Description"
@@ -364,22 +419,42 @@ export default function ServicesManager() {
                                     sx={{ mb: 3 }}
                                 />
 
-                                <TextField
-                                    select
-                                    label="Icon"
-                                    fullWidth
-                                    value={service.icon}
-                                    onChange={(e) => updateService(service.id, 'icon', e.target.value)}
-                                    margin="normal"
-                                    disabled={editingId !== service.id}
-                                    sx={{ mb: 3 }}
-                                >
-                                    {iconOptions.map((option) => (
-                                        <MenuItem key={option.value} value={option.value}>
-                                            {option.label}
-                                        </MenuItem>
+                                <Typography variant="subtitle1" gutterBottom sx={{ mb: 2 }}>
+                                    Choose Icon
+                                </Typography>
+                                <Grid container spacing={2} sx={{ mb: 4 }}>
+                                    {iconOptions.map((iconName) => (
+                                        <Grid item xs={3} sm={2} key={iconName}>
+                                            <Box
+                                                onClick={() => editingId === service.id && selectIcon(iconName)}
+                                                sx={{
+                                                    height: 100,
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    borderRadius: 3,
+                                                    border: service.icon === iconName ? '3px solid' : '2px dashed',
+                                                    borderColor: service.icon === iconName ? 'secondary.main' : 'grey.400',
+                                                    cursor: editingId === service.id ? 'pointer' : 'default',
+                                                    transition: 'all 0.2s',
+                                                    bgcolor: service.icon === iconName ? 'secondary.50' : 'transparent',
+                                                    '&:hover': editingId === service.id ? {
+                                                        bgcolor: 'grey.100',
+                                                        borderColor: 'secondary.main',
+                                                    } : {},
+                                                }}
+                                            >
+                                                <Box sx={{ fontSize: 48, color: 'primary.main', mb: 1 }}>
+                                                    {iconMap[iconName]}
+                                                </Box>
+                                                <Typography variant="caption" color="text.secondary" align="center">
+                                                    {iconName}
+                                                </Typography>
+                                            </Box>
+                                        </Grid>
                                     ))}
-                                </TextField>
+                                </Grid>
 
                                 <TextField
                                     label="Description"

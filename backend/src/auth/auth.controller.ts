@@ -1,6 +1,7 @@
 // src/auth/auth.controller.ts
-import { Controller, Post, Body, HttpCode } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, UseGuards, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -21,5 +22,21 @@ export class AuthController {
     @HttpCode(200)
     async refresh(@Body() body: { refresh_token: string }) {
         return this.authService.refreshToken(body.refresh_token);
+    }
+
+    // NEW: Change Password Endpoint
+    @Post('change-password')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(200)
+    async changePassword(
+        @Request() req,
+        @Body() body: { currentPassword: string; newPassword: string },
+    ) {
+        await this.authService.changePassword(
+            req.user.userId,
+            body.currentPassword,
+            body.newPassword,
+        );
+        return { message: 'Password changed successfully' };
     }
 }
