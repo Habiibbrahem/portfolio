@@ -2,6 +2,8 @@
 import { AppBar, Toolbar, Box, Container, IconButton, Button } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
 import LockIcon from '@mui/icons-material/Lock';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import LogoutIcon from '@mui/icons-material/Logout';
 
 const navLinks = [
     { label: 'Home', path: '/' },
@@ -11,6 +13,15 @@ const navLinks = [
 
 export default function PublicNavbar() {
     const location = useLocation();
+
+    // Check if admin is logged in
+    const isLoggedIn = !!localStorage.getItem('accessToken');
+
+    const handleLogout = () => {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        window.location.href = '/admin/login';
+    };
 
     return (
         <AppBar
@@ -57,7 +68,7 @@ export default function PublicNavbar() {
                         CONSTRUCT
                     </Box>
 
-                    {/* Navigation Links + Admin Icon */}
+                    {/* Navigation Links + Auth Controls */}
                     <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
                         {navLinks.map((link) => (
                             <Button
@@ -80,24 +91,57 @@ export default function PublicNavbar() {
                             </Button>
                         ))}
 
-                        {/* Admin Login Icon - Extreme Right */}
-                        <IconButton
-                            component={Link}
-                            to="/admin/login"
-                            aria-label="Admin login"
-                            sx={{
-                                ml: 2,
-                                color: 'text.secondary',
-                                bgcolor: 'action.hover',
-                                '&:hover': {
-                                    bgcolor: 'secondary.main',
-                                    color: 'black',
-                                },
-                                transition: 'all 0.2s',
-                            }}
-                        >
-                            <LockIcon />
-                        </IconButton>
+                        {/* Show Admin Controls Only When Logged In */}
+                        {isLoggedIn ? (
+                            <>
+                                <Button
+                                    component={Link}
+                                    to="/admin/dashboard"
+                                    startIcon={<DashboardIcon />}
+                                    sx={{
+                                        fontWeight: 600,
+                                        color: 'primary.main',
+                                        textTransform: 'none',
+                                        bgcolor: 'action.hover',
+                                        '&:hover': { bgcolor: 'primary.light', color: 'white' },
+                                    }}
+                                >
+                                    Dashboard
+                                </Button>
+
+                                <Button
+                                    onClick={handleLogout}
+                                    startIcon={<LogoutIcon />}
+                                    sx={{
+                                        fontWeight: 600,
+                                        color: 'error.main',
+                                        textTransform: 'none',
+                                        '&:hover': { bgcolor: 'error.light', color: 'white' },
+                                    }}
+                                >
+                                    Logout
+                                </Button>
+                            </>
+                        ) : (
+                            /* Show Lock Icon Only When NOT Logged In */
+                            <IconButton
+                                component={Link}
+                                to="/admin/login"
+                                aria-label="Admin login"
+                                sx={{
+                                    ml: 2,
+                                    color: 'text.secondary',
+                                    bgcolor: 'action.hover',
+                                    '&:hover': {
+                                        bgcolor: 'secondary.main',
+                                        color: 'black',
+                                    },
+                                    transition: 'all 0.2s',
+                                }}
+                            >
+                                <LockIcon />
+                            </IconButton>
+                        )}
                     </Box>
                 </Toolbar>
             </Container>

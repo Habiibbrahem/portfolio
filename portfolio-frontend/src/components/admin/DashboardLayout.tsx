@@ -14,6 +14,7 @@ import {
   Divider,
   CssBaseline,
   Badge,
+  Button,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -24,12 +25,14 @@ import DesignServicesIcon from '@mui/icons-material/DesignServices';
 import ContactPhoneIcon from '@mui/icons-material/ContactPhone';
 import MessageIcon from '@mui/icons-material/Message';
 import ShareIcon from '@mui/icons-material/Share';
-import ArticleIcon from '@mui/icons-material/Article'; // ← NEW: For News
+import ArticleIcon from '@mui/icons-material/Article';
 import LogoutIcon from '@mui/icons-material/Logout';
+import HomeIcon from '@mui/icons-material/Home'; // ← NEW
 import { useAuthStore } from '../../store/useAuthStore';
 import { useQuery } from '@tanstack/react-query';
 import api from '../../api/client';
 import SettingsIcon from '@mui/icons-material/Settings';
+
 const drawerWidth = 240;
 
 export default function DashboardLayout() {
@@ -70,7 +73,7 @@ export default function DashboardLayout() {
       ),
       path: '/admin/dashboard/messages',
     },
-    { text: 'Settings', icon: <SettingsIcon />, path: '/admin/dashboard/settings' }, // ← NEW
+    { text: 'Settings', icon: <SettingsIcon />, path: '/admin/dashboard/settings' },
   ];
 
   const handleNav = (path: string) => {
@@ -154,9 +157,27 @@ export default function DashboardLayout() {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap fontWeight="bold">
+          <Typography variant="h6" noWrap fontWeight="bold" flexGrow={1}>
             Admin Dashboard
           </Typography>
+
+          {/* NEW: Go to Homepage Button */}
+          <Button
+            variant="contained"
+            startIcon={<HomeIcon />}
+            onClick={() => navigate('/')}
+            sx={{
+              bgcolor: 'white',
+              color: 'primary.main',
+              fontWeight: 600,
+              textTransform: 'none',
+              '&:hover': {
+                bgcolor: 'grey.200',
+              },
+            }}
+          >
+            View Homepage
+          </Button>
         </Toolbar>
       </AppBar>
 
