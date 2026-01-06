@@ -16,7 +16,7 @@ import {
     Add as AddIcon,
     Delete as DeleteIcon,
     PhotoCamera as PhotoCameraIcon,
-    Edit as EditIcon,
+    Edit as EditIcon, // ← Properly imported
     Save as SaveIcon,
     Cancel as CancelIcon,
 } from '@mui/icons-material';
@@ -160,29 +160,47 @@ export default function ServicesManager() {
         const newList = [...savedServices, draftService];
         mutation.mutate({ services: newList });
         setSavedServices(newList);
+
+        // Log activity
+        api.post('/activity/log', {
+            text: `Added new service: ${draftService.title}`,
+            type: 'service_add',
+        }).catch(() => { });
+
         setDraftService(null);
     };
 
-    const startEditing = (id: string) => {
-        setEditingId(id);
-    };
-
-    const cancelEditing = () => {
-        setEditingId(null);
-    };
-
     const updateService = (id: string, field: keyof ServiceItem, value: string) => {
+        const serviceToUpdate = savedServices.find(s => s.id === id);
+        if (!serviceToUpdate) return;
+
         const newList = savedServices.map((s) =>
             s.id === id ? { ...s, [field]: value } : s
         );
         setSavedServices(newList);
         mutation.mutate({ services: newList });
+
+        // Log only on title change to avoid spam
+        if (field === 'title') {
+            api.post('/activity/log', {
+                text: `Updated service: ${value}`,
+                type: 'service_update',
+            }).catch(() => { });
+        }
     };
 
     const removeService = (id: string) => {
+        const deletedService = savedServices.find(s => s.id === id);
         const newList = savedServices.filter((s) => s.id !== id);
         setSavedServices(newList);
         mutation.mutate({ services: newList });
+
+        // Log activity
+        api.post('/activity/log', {
+            text: `Deleted service: ${deletedService?.title || 'Untitled'}`,
+            type: 'service_delete',
+        }).catch(() => { });
+
         setSuccess('Service deleted');
         setTimeout(() => setSuccess(''), 4000);
     };
@@ -214,8 +232,6 @@ export default function ServicesManager() {
     const selectIcon = (iconName: string, isDraft: boolean = false) => {
         if (isDraft && draftService) {
             setDraftService({ ...draftService, icon: iconName });
-        } else if (editingId) {
-            updateService(editingId, 'icon', iconName);
         }
     };
 
@@ -387,20 +403,9 @@ export default function ServicesManager() {
                                 }}
                             >
                                 <Box sx={{ display: 'flex', gap: 2, position: 'absolute', top: 16, right: 16 }}>
-                                    {editingId === service.id ? (
-                                        <>
-                                            <IconButton color="success" onClick={() => setEditingId(null)}>
-                                                <SaveIcon />
-                                            </IconButton>
-                                            <IconButton color="warning" onClick={() => setEditingId(null)}>
-                                                <CancelIcon />
-                                            </IconButton>
-                                        </>
-                                    ) : (
-                                        <IconButton color="primary" onClick={() => startEditing(service.id)}>
-                                            <EditIcon />
-                                        </IconButton>
-                                    )}
+                                    <IconButton color="primary" onClick={() => setEditingId(service.id)}>
+                                        <EditIcon />
+                                    </IconButton>
                                     <IconButton
                                         color="error"
                                         onClick={() => removeService(service.id)}
@@ -415,7 +420,6 @@ export default function ServicesManager() {
                                     value={service.title}
                                     onChange={(e) => updateService(service.id, 'title', e.target.value)}
                                     margin="normal"
-                                    disabled={editingId !== service.id}
                                     sx={{ mb: 3 }}
                                 />
 
@@ -426,7 +430,7 @@ export default function ServicesManager() {
                                     {iconOptions.map((iconName) => (
                                         <Grid item xs={3} sm={2} key={iconName}>
                                             <Box
-                                                onClick={() => editingId === service.id && selectIcon(iconName)}
+                                                onClick={() => selectIcon(iconName)}
                                                 sx={{
                                                     height: 100,
                                                     display: 'flex',
@@ -436,13 +440,13 @@ export default function ServicesManager() {
                                                     borderRadius: 3,
                                                     border: service.icon === iconName ? '3px solid' : '2px dashed',
                                                     borderColor: service.icon === iconName ? 'secondary.main' : 'grey.400',
-                                                    cursor: editingId === service.id ? 'pointer' : 'default',
+                                                    cursor: 'pointer',
                                                     transition: 'all 0.2s',
                                                     bgcolor: service.icon === iconName ? 'secondary.50' : 'transparent',
-                                                    '&:hover': editingId === service.id ? {
+                                                    '&:hover': {
                                                         bgcolor: 'grey.100',
                                                         borderColor: 'secondary.main',
-                                                    } : {},
+                                                    },
                                                 }}
                                             >
                                                 <Box sx={{ fontSize: 48, color: 'primary.main', mb: 1 }}>
@@ -464,7 +468,6 @@ export default function ServicesManager() {
                                     value={service.description}
                                     onChange={(e) => updateService(service.id, 'description', e.target.value)}
                                     margin="normal"
-                                    disabled={editingId !== service.id}
                                     sx={{ mb: 4 }}
                                 />
 

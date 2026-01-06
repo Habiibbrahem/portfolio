@@ -1,8 +1,7 @@
-// src/app.module.ts
-import { Module } from '@nestjs/common';
+// backend/src/app.module.ts
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { join } from 'path';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -11,6 +10,9 @@ import { UsersModule } from './users/users.module';
 import { CmsModule } from './cms/cms.module';
 import { UploadModule } from './upload/upload.module';
 import { ContactMessagesModule } from './contact-messages/contact-messages.module';
+import { StatsModule } from './stats/stats.module'; // ← NEW: Import StatsModule
+import { VisitTrackerMiddleware } from './common/middleware/visit-tracker.middleware'; // ← NEW: Middleware for tracking visits
+import { ActivityModule } from './activity/activity.module';
 @Module({
   imports: [
     // Global config module to read .env
@@ -25,18 +27,24 @@ import { ContactMessagesModule } from './contact-messages/contact-messages.modul
       inject: [ConfigService],
     }),
 
-    // REMOVED: ServeStaticModule for /uploads
-    // No longer needed → Cloudinary serves images directly
-
     // App modules
     AuthModule,
     UsersModule,
     CmsModule,
     UploadModule,
     ContactMessagesModule,
+    StatsModule,
+    ActivityModule, // ← ADD THIS
   ],
 
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  // ← ADD NestModule interface
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(VisitTrackerMiddleware)
+      .forRoutes('*'); // Apply to all routes (it will filter inside the middleware)
+  }
+}

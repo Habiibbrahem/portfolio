@@ -1,3 +1,4 @@
+// src/components/admin/DashboardLayout.tsx
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -14,7 +15,10 @@ import {
   Divider,
   CssBaseline,
   Badge,
-  Button,
+  Menu,
+  MenuItem,
+  Avatar,
+  Tooltip, // ← ADDED THIS
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -27,17 +31,19 @@ import MessageIcon from '@mui/icons-material/Message';
 import ShareIcon from '@mui/icons-material/Share';
 import ArticleIcon from '@mui/icons-material/Article';
 import LogoutIcon from '@mui/icons-material/Logout';
-import HomeIcon from '@mui/icons-material/Home'; // ← NEW
+import HomeIcon from '@mui/icons-material/Home';
+import SettingsIcon from '@mui/icons-material/Settings';
+import AccountCircle from '@mui/icons-material/AccountCircle';
+
 import { useAuthStore } from '../../store/useAuthStore';
 import { useQuery } from '@tanstack/react-query';
 import api from '../../api/client';
-import SettingsIcon from '@mui/icons-material/Settings';
 
-const drawerWidth = 240;
+const drawerWidth = 260;
 
 export default function DashboardLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuthStore();
@@ -48,7 +54,7 @@ export default function DashboardLayout() {
       try {
         const { data } = await api.get('/contact-messages/unread-count');
         return data.count;
-      } catch (err) {
+      } catch {
         return 0;
       }
     },
@@ -66,11 +72,7 @@ export default function DashboardLayout() {
     { text: 'Contact', icon: <ContactPhoneIcon />, path: '/admin/dashboard/contact' },
     {
       text: 'Messages',
-      icon: (
-        <Badge badgeContent={unreadCount} color="error" showZero={false}>
-          <MessageIcon />
-        </Badge>
-      ),
+      icon: <Badge badgeContent={unreadCount} color="error"><MessageIcon /></Badge>,
       path: '/admin/dashboard/messages',
     },
     { text: 'Settings', icon: <SettingsIcon />, path: '/admin/dashboard/settings' },
@@ -81,53 +83,62 @@ export default function DashboardLayout() {
     setMobileOpen(false);
   };
 
-  const handleDrawerToggle = () => {
-    if (!isClosing) setMobileOpen(!mobileOpen);
+  const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
   };
 
-  const handleDrawerClose = () => {
-    setIsClosing(true);
-    setMobileOpen(false);
+  const handleClose = () => {
+    setAnchorEl(null);
   };
 
   const drawer = (
     <Box>
-      <Toolbar sx={{ bgcolor: 'primary.main' }}>
-        <Typography variant="h6" color="white" fontWeight="bold" noWrap>
+      <Toolbar sx={{ bgcolor: '#1a1f2e', justifyContent: 'center' }}>
+        <Typography variant="h6" color="white" fontWeight="bold">
           Construct CMS
         </Typography>
       </Toolbar>
       <Divider />
-      <List sx={{ px: 1, py: 2 }}>
+      <List sx={{ px: 2, py: 2 }}>
         {menuItems.map((item) => (
           <ListItemButton
             key={item.text}
             selected={location.pathname === item.path}
             onClick={() => handleNav(item.path)}
             sx={{
-              borderRadius: 2,
+              borderRadius: 3,
               mb: 1,
+              py: 1.5,
               '&.Mui-selected': {
-                bgcolor: 'primary.main',
+                bgcolor: '#FF6B35',
                 color: 'white',
                 '& .MuiListItemIcon-root': { color: 'white' },
+                '&:hover': { bgcolor: '#e55a30' },
+              },
+              '&:hover': {
+                bgcolor: 'rgba(255, 107, 53, 0.1)',
               },
             }}
           >
-            <ListItemIcon>{item.icon}</ListItemIcon>
+            <ListItemIcon sx={{ color: location.pathname === item.path ? 'white' : 'inherit' }}>
+              {item.icon}
+            </ListItemIcon>
             <ListItemText primary={item.text} />
           </ListItemButton>
         ))}
-        <Divider sx={{ my: 2 }} />
+      </List>
+      <Box sx={{ flexGrow: 1 }} />
+      <Divider />
+      <List sx={{ px: 2, pb: 2 }}>
         <ListItemButton
           onClick={logout}
           sx={{
-            borderRadius: 2,
-            color: 'error.main',
-            '&:hover': { bgcolor: 'error.light', color: 'white' },
+            borderRadius: 3,
+            color: '#f44336',
+            '&:hover': { bgcolor: 'rgba(244, 67, 54, 0.1)' },
           }}
         >
-          <ListItemIcon sx={{ color: 'inherit' }}>
+          <ListItemIcon sx={{ color: '#f44336' }}>
             <LogoutIcon />
           </ListItemIcon>
           <ListItemText primary="Logout" />
@@ -137,86 +148,75 @@ export default function DashboardLayout() {
   );
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', flexDirection: 'column' }}>
       <CssBaseline />
-      <AppBar
-        position="fixed"
-        sx={{
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-          bgcolor: 'primary.main',
-        }}
-      >
+
+      {/* Light Top Bar */}
+      <AppBar position="fixed" sx={{ bgcolor: '#f8f9fa', color: 'text.primary', boxShadow: 1, zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <Toolbar>
-          <IconButton
-            color="inherit"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: 'none' } }}
-          >
+          <IconButton color="inherit" onClick={() => setMobileOpen(!mobileOpen)} sx={{ mr: 2, display: { md: 'none' } }}>
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap fontWeight="bold" flexGrow={1}>
+          <Typography variant="h6" fontWeight="bold" sx={{ flexGrow: 1 }}>
             Admin Dashboard
           </Typography>
-
-          {/* NEW: Go to Homepage Button */}
-          <Button
-            variant="contained"
-            startIcon={<HomeIcon />}
-            onClick={() => navigate('/')}
-            sx={{
-              bgcolor: 'white',
-              color: 'primary.main',
-              fontWeight: 600,
-              textTransform: 'none',
-              '&:hover': {
-                bgcolor: 'grey.200',
-              },
-            }}
-          >
-            View Homepage
-          </Button>
+          <Tooltip title="View Homepage">
+            <IconButton onClick={() => navigate('/')} color="primary">
+              <HomeIcon />
+            </IconButton>
+          </Tooltip>
+          <IconButton onClick={handleMenu} sx={{ ml: 2 }}>
+            <Avatar sx={{ bgcolor: '#FF6B35' }}>
+              <AccountCircle />
+            </Avatar>
+          </IconButton>
+          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
+            <MenuItem disabled>Admin User</MenuItem>
+            <Divider />
+            <MenuItem onClick={logout}>Logout</MenuItem>
+          </Menu>
         </Toolbar>
       </AppBar>
 
-      <Drawer
-        variant="temporary"
-        open={mobileOpen}
-        onClose={handleDrawerClose}
-        ModalProps={{ keepMounted: true }}
-        sx={{
-          display: { xs: 'block', sm: 'none' },
-          '& .MuiDrawer-paper': { width: drawerWidth },
-        }}
-      >
-        {drawer}
-      </Drawer>
-
+      {/* Permanent Dark Sidebar */}
       <Drawer
         variant="permanent"
         sx={{
-          display: { xs: 'none', sm: 'block' },
-          '& .MuiDrawer-paper': { width: drawerWidth, position: 'fixed', height: '100vh' },
+          width: drawerWidth,
+          flexShrink: 0,
+          '& .MuiDrawer-paper': { width: drawerWidth, bgcolor: '#1a1f2e', color: 'white', borderRight: 'none' },
+          display: { xs: 'none', md: 'block' },
         }}
       >
         {drawer}
       </Drawer>
 
-      <Box
-        component="main"
+      {/* Mobile Sidebar */}
+      <Drawer
+        variant="temporary"
+        open={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        ModalProps={{ keepMounted: true }}
         sx={{
-          flexGrow: 1,
-          bgcolor: 'background.default',
-          minHeight: '100vh',
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': { width: drawerWidth, bgcolor: '#1a1f2e', color: 'white' },
         }}
       >
-        <Toolbar />
-        <Box sx={{ p: 3, maxWidth: '1200px', mx: 'auto' }}>
+        {drawer}
+      </Drawer>
+
+      {/* Main Content */}
+      <Box component="main" sx={{ flexGrow: 1, bgcolor: '#f5f7fa', ml: { md: `${drawerWidth}px` } }}>
+        <Toolbar /> {/* Spacer */}
+        <Box sx={{ p: { xs: 3, md: 5 } }}>
           <Outlet />
+        </Box>
+
+        {/* Footer */}
+        <Box sx={{ py: 3, textAlign: 'center', bgcolor: '#f8f9fa', borderTop: '1px solid #e0e0e0', mt: 'auto' }}>
+          <Typography variant="body2" color="text.secondary">
+            © 2026 Construct CMS. All rights reserved.
+          </Typography>
         </Box>
       </Box>
     </Box>

@@ -1,3 +1,4 @@
+// src/components/admin/NewsManager.tsx
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -45,7 +46,7 @@ import type { CmsSection } from '../../types/cms';
 interface NewsItem {
     id: string;
     title: string;
-    description: string;  // NEW
+    description: string;
     image: string;
     date: string;
 }
@@ -200,6 +201,12 @@ export default function NewsManager() {
         setNewTitle('');
         setNewDescription('');
         setNewDate(dayjs());
+
+        // Log "Added new news"
+        api.post('/activity/log', {
+            text: `Added new news: ${newTitle.trim()}`,
+            type: 'news_add',
+        }).catch(() => { });
     };
 
     const uploadImageForItem = async (file: File, itemId: string) => {
@@ -215,11 +222,24 @@ export default function NewsManager() {
     };
 
     const removeItem = (id: string) => {
+        const deletedItem = items.find(i => i.id === id);
         setItems(items.filter(i => i.id !== id));
+
+        // Log "Deleted news"
+        api.post('/activity/log', {
+            text: `Deleted news: ${deletedItem?.title || 'Untitled'}`,
+            type: 'news_delete',
+        }).catch(() => { });
     };
 
     const handleSave = () => {
         mutation.mutate(items);
+
+        // Log "Updated news section"
+        api.post('/activity/log', {
+            text: `Updated news section (${items.length} items)`,
+            type: 'news_update',
+        }).catch(() => { });
     };
 
     if (isLoading) return <CircularProgress />;

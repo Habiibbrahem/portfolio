@@ -1,8 +1,11 @@
+// src/App.tsx
+import { useEffect } from 'react'; // ← ADDED
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 
 import AppRoutes from './routes';
+import api from './api/client'; // ← ADDED: your axios instance
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -14,17 +17,17 @@ const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#1e293b',     // Deep slate (used for headings, navbar text)
+      main: '#1e293b',
       dark: '#0f172a',
     },
     secondary: {
-      main: '#fbbf24',     // Bright yellow (buttons, accents)
+      main: '#fbbf24',
       light: '#fcd34d',
       dark: '#f59e0b',
     },
     background: {
-      default: '#f8fafc',  // Very light gray (main content background)
-      paper: '#ffffff',    // White cards and forms
+      default: '#f8fafc',
+      paper: '#ffffff',
     },
     text: {
       primary: '#1e293b',
@@ -121,6 +124,18 @@ if (typeof window !== 'undefined') {
 }
 
 export default function App() {
+  // Record a site visit on every public page load
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (!path.startsWith('/admin')) {
+      api
+        .post('/stats/visit')
+        .catch(() => {
+          // Silent fail — we don't want to break the user experience if tracking fails
+        });
+    }
+  }, []); // Runs once on initial mount
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
