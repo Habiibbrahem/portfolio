@@ -7,16 +7,16 @@ import {
     TextField,
     Typography,
     Alert,
-    Paper,
     Grid,
+    CircularProgress,
 } from '@mui/material';
 import { PhotoCamera as PhotoCameraIcon } from '@mui/icons-material';
 import { uploadImage } from '../../api/upload';
 import api from '../../api/client';
 
 interface ContactData {
-    backgroundImage: string;        // For contact page
-    homeImage: string;              // NEW: For homepage "Get In Touch" right side
+    backgroundImage: string;
+    homeImage: string;
     addressLine1: string;
     addressLine2: string;
     phone1: string;
@@ -128,95 +128,328 @@ export default function ContactManager() {
     };
 
     if (isLoading) {
-        return <Typography>Loading...</Typography>;
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+                <CircularProgress size={60} sx={{ color: '#EAB308' }} />
+            </Box>
+        );
     }
 
     return (
-        <Paper elevation={4} sx={{ p: { xs: 4, md: 6 }, maxWidth: 1100, mx: 'auto', borderRadius: 4 }}>
-            <Typography variant="h4" fontWeight="bold" color="primary.main" mb={5}>
-                Contact Page Manager
-            </Typography>
+        <Box
+            sx={{
+                minHeight: '100vh',
+                bgcolor: '#0F172A',
+                color: 'white',
+                p: { xs: 3, md: 6 },
+            }}
+        >
+            <Box sx={{ maxWidth: 1100, mx: 'auto' }}>
+                {/* Title with gold accent line */}
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 6 }}>
+                    <Box
+                        sx={{
+                            width: 4,
+                            height: 40,
+                            background: 'linear-gradient(180deg, #EAB308 0%, #F59E0B 100%)',
+                            borderRadius: 2,
+                            mr: 3
+                        }}
+                    />
+                    <Typography
+                        variant="h4"
+                        fontWeight="bold"
+                        sx={{
+                            color: 'white',
+                            letterSpacing: '-0.5px'
+                        }}
+                    >
+                        Contact Page Manager
+                    </Typography>
+                </Box>
 
-            {success && <Alert severity="success" sx={{ mb: 3 }}>{success}</Alert>}
-            {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
-
-            {/* Background Image for Contact Page */}
-            <Box sx={{ mb: 5 }}>
-                <Typography variant="h6" gutterBottom>
-                    Contact Page Background
-                </Typography>
-                <Button
-                    variant="outlined"
-                    component="label"
-                    startIcon={<PhotoCameraIcon />}
-                >
-                    {contactData.backgroundImage ? 'Change Background' : 'Upload Background'}
-                    <input type="file" hidden accept="image/*" onChange={(e) => handleImageUpload(e, 'backgroundImage')} />
-                </Button>
-
-                {contactData.backgroundImage && (
-                    <Box sx={{ mt: 3, maxWidth: 800, borderRadius: 3, overflow: 'hidden' }}>
-                        <img src={contactData.backgroundImage} alt="Contact background" style={{ width: '100%', borderRadius: 12 }} />
-                    </Box>
+                {success && (
+                    <Alert
+                        severity="success"
+                        sx={{
+                            mb: 4,
+                            bgcolor: 'rgba(16, 185, 129, 0.1)',
+                            color: '#34D399',
+                            border: '1px solid rgba(16, 185, 129, 0.2)',
+                            '& .MuiAlert-icon': { color: '#34D399' }
+                        }}
+                    >
+                        {success}
+                    </Alert>
                 )}
-            </Box>
-
-            {/* Homepage "Get In Touch" Image */}
-            <Box sx={{ mb: 5 }}>
-                <Typography variant="h6" gutterBottom>
-                    Homepage "Get In Touch" Image (Right Side)
-                </Typography>
-                <Button
-                    variant="outlined"
-                    component="label"
-                    startIcon={<PhotoCameraIcon />}
-                >
-                    {contactData.homeImage ? 'Change Image' : 'Upload Image'}
-                    <input type="file" hidden accept="image/*" onChange={(e) => handleImageUpload(e, 'homeImage')} />
-                </Button>
-
-                {contactData.homeImage && (
-                    <Box sx={{ mt: 3, maxWidth: 800, borderRadius: 3, overflow: 'hidden' }}>
-                        <img src={contactData.homeImage} alt="Homepage contact" style={{ width: '100%', borderRadius: 12 }} />
-                    </Box>
+                {error && (
+                    <Alert
+                        severity="error"
+                        sx={{
+                            mb: 4,
+                            bgcolor: 'rgba(239, 68, 68, 0.1)',
+                            color: '#F87171',
+                            border: '1px solid rgba(239, 68, 68, 0.2)',
+                            '& .MuiAlert-icon': { color: '#F87171' }
+                        }}
+                    >
+                        {error}
+                    </Alert>
                 )}
-            </Box>
 
-            <Grid container spacing={4}>
-                <Grid item xs={12} md={6}>
-                    <TextField label="Address Line 1" fullWidth value={contactData.addressLine1} onChange={(e) => handleChange('addressLine1', e.target.value)} margin="normal" />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                    <TextField label="Address Line 2" fullWidth value={contactData.addressLine2} onChange={(e) => handleChange('addressLine2', e.target.value)} margin="normal" />
-                </Grid>
-                <Grid item xs={12} md={4}>
-                    <TextField label="Phone 1" fullWidth value={contactData.phone1} onChange={(e) => handleChange('phone1', e.target.value)} margin="normal" />
-                </Grid>
-                <Grid item xs={12} md={4}>
-                    <TextField label="Phone 2" fullWidth value={contactData.phone2} onChange={(e) => handleChange('phone2', e.target.value)} margin="normal" />
-                </Grid>
-                <Grid item xs={12} md={4}>
-                    <TextField label="Phone 3" fullWidth value={contactData.phone3} onChange={(e) => handleChange('phone3', e.target.value)} margin="normal" />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                    <TextField label="Email" fullWidth type="email" value={contactData.email} onChange={(e) => handleChange('email', e.target.value)} margin="normal" />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                    <TextField label="Working Hours" fullWidth value={contactData.hours} onChange={(e) => handleChange('hours', e.target.value)} margin="normal" />
-                </Grid>
-            </Grid>
+                {/* Contact Page Background */}
+                <Box sx={{ mb: 8 }}>
+                    <Typography variant="h6" sx={{ mb: 3, color: '#94A3B8', fontWeight: 600 }}>
+                        Contact Page Background
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        component="label"
+                        startIcon={<PhotoCameraIcon />}
+                        sx={{
+                            background: 'linear-gradient(135deg, #EAB308 0%, #F59E0B 100%)',
+                            color: 'white',
+                            fontWeight: 600,
+                            px: 5,
+                            py: 1.5,
+                            borderRadius: 2,
+                            boxShadow: '0 4px 14px 0 rgba(234, 179, 8, 0.2)',
+                            '&:hover': {
+                                background: 'linear-gradient(135deg, #F59E0B 0%, #EAB308 100%)',
+                                boxShadow: '0 6px 20px 0 rgba(234, 179, 8, 0.3)',
+                            },
+                        }}
+                    >
+                        {contactData.backgroundImage ? 'Change Background' : 'Upload Background'}
+                        <input type="file" hidden accept="image/*" onChange={(e) => handleImageUpload(e, 'backgroundImage')} />
+                    </Button>
 
-            <Box sx={{ mt: 6, textAlign: 'center' }}>
-                <Button
-                    variant="contained"
-                    size="large"
-                    onClick={handleSave}
-                    disabled={mutation.isPending}
-                    sx={{ px: 8, py: 1.5 }}
-                >
-                    {mutation.isPending ? 'Saving...' : 'Save All Changes'}
-                </Button>
+                    {contactData.backgroundImage && (
+                        <Box sx={{ mt: 4, maxWidth: 900, borderRadius: 3, overflow: 'hidden', boxShadow: '0 12px 40px rgba(0,0,0,0.4)' }}>
+                            <img
+                                src={contactData.backgroundImage}
+                                alt="Contact background"
+                                style={{ width: '100%', display: 'block' }}
+                            />
+                        </Box>
+                    )}
+                </Box>
+
+                {/* Homepage "Get In Touch" Image */}
+                <Box sx={{ mb: 8 }}>
+                    <Typography variant="h6" sx={{ mb: 3, color: '#94A3B8', fontWeight: 600 }}>
+                        Homepage "Get In Touch" Image (Right Side)
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        component="label"
+                        startIcon={<PhotoCameraIcon />}
+                        sx={{
+                            background: 'linear-gradient(135deg, #EAB308 0%, #F59E0B 100%)',
+                            color: 'white',
+                            fontWeight: 600,
+                            px: 5,
+                            py: 1.5,
+                            borderRadius: 2,
+                            boxShadow: '0 4px 14px 0 rgba(234, 179, 8, 0.2)',
+                            '&:hover': {
+                                background: 'linear-gradient(135deg, #F59E0B 0%, #EAB308 100%)',
+                                boxShadow: '0 6px 20px 0 rgba(234, 179, 8, 0.3)',
+                            },
+                        }}
+                    >
+                        {contactData.homeImage ? 'Change Image' : 'Upload Image'}
+                        <input type="file" hidden accept="image/*" onChange={(e) => handleImageUpload(e, 'homeImage')} />
+                    </Button>
+
+                    {contactData.homeImage && (
+                        <Box sx={{ mt: 4, maxWidth: 900, borderRadius: 3, overflow: 'hidden', boxShadow: '0 12px 40px rgba(0,0,0,0.4)' }}>
+                            <img
+                                src={contactData.homeImage}
+                                alt="Homepage contact"
+                                style={{ width: '100%', display: 'block' }}
+                            />
+                        </Box>
+                    )}
+                </Box>
+
+                {/* Contact Info Fields */}
+                <Grid container spacing={4}>
+                    <Grid item xs={12} md={6}>
+                        <TextField
+                            label="Address Line 1"
+                            fullWidth
+                            value={contactData.addressLine1}
+                            onChange={(e) => handleChange('addressLine1', e.target.value)}
+                            margin="normal"
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    bgcolor: '#1E293B',
+                                    color: 'white',
+                                    borderRadius: 2,
+                                    '& fieldset': { borderColor: '#334155' },
+                                    '&:hover fieldset': { borderColor: '#EAB308' },
+                                    '&.Mui-focused fieldset': { borderColor: '#EAB308', borderWidth: 2 },
+                                },
+                                '& .MuiInputLabel-root': { color: '#94A3B8', fontWeight: 600, '&.Mui-focused': { color: '#EAB308' } },
+                            }}
+                        />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                        <TextField
+                            label="Address Line 2"
+                            fullWidth
+                            value={contactData.addressLine2}
+                            onChange={(e) => handleChange('addressLine2', e.target.value)}
+                            margin="normal"
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    bgcolor: '#1E293B',
+                                    color: 'white',
+                                    borderRadius: 2,
+                                    '& fieldset': { borderColor: '#334155' },
+                                    '&:hover fieldset': { borderColor: '#EAB308' },
+                                    '&.Mui-focused fieldset': { borderColor: '#EAB308', borderWidth: 2 },
+                                },
+                                '& .MuiInputLabel-root': { color: '#94A3B8', fontWeight: 600, '&.Mui-focused': { color: '#EAB308' } },
+                            }}
+                        />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                        <TextField
+                            label="Phone 1"
+                            fullWidth
+                            value={contactData.phone1}
+                            onChange={(e) => handleChange('phone1', e.target.value)}
+                            margin="normal"
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    bgcolor: '#1E293B',
+                                    color: 'white',
+                                    borderRadius: 2,
+                                    '& fieldset': { borderColor: '#334155' },
+                                    '&:hover fieldset': { borderColor: '#EAB308' },
+                                    '&.Mui-focused fieldset': { borderColor: '#EAB308', borderWidth: 2 },
+                                },
+                                '& .MuiInputLabel-root': { color: '#94A3B8', fontWeight: 600, '&.Mui-focused': { color: '#EAB308' } },
+                            }}
+                        />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                        <TextField
+                            label="Phone 2"
+                            fullWidth
+                            value={contactData.phone2}
+                            onChange={(e) => handleChange('phone2', e.target.value)}
+                            margin="normal"
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    bgcolor: '#1E293B',
+                                    color: 'white',
+                                    borderRadius: 2,
+                                    '& fieldset': { borderColor: '#334155' },
+                                    '&:hover fieldset': { borderColor: '#EAB308' },
+                                    '&.Mui-focused fieldset': { borderColor: '#EAB308', borderWidth: 2 },
+                                },
+                                '& .MuiInputLabel-root': { color: '#94A3B8', fontWeight: 600, '&.Mui-focused': { color: '#EAB308' } },
+                            }}
+                        />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                        <TextField
+                            label="Phone 3"
+                            fullWidth
+                            value={contactData.phone3}
+                            onChange={(e) => handleChange('phone3', e.target.value)}
+                            margin="normal"
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    bgcolor: '#1E293B',
+                                    color: 'white',
+                                    borderRadius: 2,
+                                    '& fieldset': { borderColor: '#334155' },
+                                    '&:hover fieldset': { borderColor: '#EAB308' },
+                                    '&.Mui-focused fieldset': { borderColor: '#EAB308', borderWidth: 2 },
+                                },
+                                '& .MuiInputLabel-root': { color: '#94A3B8', fontWeight: 600, '&.Mui-focused': { color: '#EAB308' } },
+                            }}
+                        />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                        <TextField
+                            label="Email"
+                            fullWidth
+                            type="email"
+                            value={contactData.email}
+                            onChange={(e) => handleChange('email', e.target.value)}
+                            margin="normal"
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    bgcolor: '#1E293B',
+                                    color: 'white',
+                                    borderRadius: 2,
+                                    '& fieldset': { borderColor: '#334155' },
+                                    '&:hover fieldset': { borderColor: '#EAB308' },
+                                    '&.Mui-focused fieldset': { borderColor: '#EAB308', borderWidth: 2 },
+                                },
+                                '& .MuiInputLabel-root': { color: '#94A3B8', fontWeight: 600, '&.Mui-focused': { color: '#EAB308' } },
+                            }}
+                        />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                        <TextField
+                            label="Working Hours"
+                            fullWidth
+                            value={contactData.hours}
+                            onChange={(e) => handleChange('hours', e.target.value)}
+                            margin="normal"
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    bgcolor: '#1E293B',
+                                    color: 'white',
+                                    borderRadius: 2,
+                                    '& fieldset': { borderColor: '#334155' },
+                                    '&:hover fieldset': { borderColor: '#EAB308' },
+                                    '&.Mui-focused fieldset': { borderColor: '#EAB308', borderWidth: 2 },
+                                },
+                                '& .MuiInputLabel-root': { color: '#94A3B8', fontWeight: 600, '&.Mui-focused': { color: '#EAB308' } },
+                            }}
+                        />
+                    </Grid>
+                </Grid>
+
+                <Box sx={{ mt: 8, textAlign: 'center' }}>
+                    <Button
+                        variant="contained"
+                        size="large"
+                        onClick={handleSave}
+                        disabled={mutation.isPending}
+                        sx={{
+                            px: 10,
+                            py: 2,
+                            borderRadius: 2,
+                            background: 'linear-gradient(135deg, #EAB308 0%, #F59E0B 100%)',
+                            color: 'white',
+                            fontWeight: 700,
+                            fontSize: '1.1rem',
+                            boxShadow: '0 8px 16px 0 rgba(234, 179, 8, 0.25)',
+                            '&:hover': {
+                                background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                                boxShadow: '0 12px 24px 0 rgba(234, 179, 8, 0.35)',
+                                transform: 'translateY(-2px)',
+                            },
+                            '&:disabled': {
+                                background: '#334155',
+                                color: '#64748B',
+                                boxShadow: 'none',
+                            },
+                            transition: 'all 0.3s ease',
+                        }}
+                    >
+                        {mutation.isPending ? 'Saving...' : 'Save All Changes'}
+                    </Button>
+                </Box>
             </Box>
-        </Paper>
+        </Box>
     );
 }

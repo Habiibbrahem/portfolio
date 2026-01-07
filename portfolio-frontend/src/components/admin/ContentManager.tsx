@@ -101,19 +101,87 @@ export default function ContentManager() {
     if (isLoading) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
-                <CircularProgress size={60} />
+                <CircularProgress
+                    size={60}
+                    sx={{
+                        color: '#EAB308',
+                        '& .MuiCircularProgress-circle': {
+                            strokeLinecap: 'round',
+                        }
+                    }}
+                />
             </Box>
         );
     }
 
     return (
-        <Paper elevation={4} sx={{ p: { xs: 4, md: 6 }, maxWidth: 1200, mx: 'auto', borderRadius: 4 }}>
-            <Typography variant="h4" fontWeight="bold" color="primary" mb={5}>
-                Hero Carousel Manager
-            </Typography>
+        <Paper
+            elevation={0}
+            sx={{
+                p: { xs: 4, md: 6 },
+                maxWidth: 1200,
+                mx: 'auto',
+                borderRadius: 3,
+                bgcolor: '#0F172A',
+                border: '1px solid #1E293B',
+                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2)'
+            }}
+        >
+            {/* Header with gradient accent bar */}
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 5 }}>
+                <Box
+                    sx={{
+                        width: 4,
+                        height: 40,
+                        background: 'linear-gradient(180deg, #EAB308 0%, #F59E0B 100%)',
+                        borderRadius: 2,
+                        mr: 3
+                    }}
+                />
+                <Typography
+                    variant="h4"
+                    fontWeight="bold"
+                    sx={{
+                        color: 'white',
+                        letterSpacing: '-0.5px'
+                    }}
+                >
+                    Hero Carousel Manager
+                </Typography>
+            </Box>
 
-            {success && <Alert severity="success" sx={{ mb: 3 }}>{success}</Alert>}
-            {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+            {success && (
+                <Alert
+                    severity="success"
+                    sx={{
+                        mb: 3,
+                        bgcolor: 'rgba(16, 185, 129, 0.1)',
+                        color: '#34D399',
+                        border: '1px solid rgba(16, 185, 129, 0.2)',
+                        '& .MuiAlert-icon': {
+                            color: '#34D399'
+                        }
+                    }}
+                >
+                    {success}
+                </Alert>
+            )}
+            {error && (
+                <Alert
+                    severity="error"
+                    sx={{
+                        mb: 3,
+                        bgcolor: 'rgba(239, 68, 68, 0.1)',
+                        color: '#F87171',
+                        border: '1px solid rgba(239, 68, 68, 0.2)',
+                        '& .MuiAlert-icon': {
+                            color: '#F87171'
+                        }
+                    }}
+                >
+                    {error}
+                </Alert>
+            )}
 
             <TextField
                 label="Title"
@@ -121,6 +189,30 @@ export default function ContentManager() {
                 margin="normal"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
+                sx={{
+                    '& .MuiOutlinedInput-root': {
+                        bgcolor: '#1E293B',
+                        color: 'white',
+                        borderRadius: 2,
+                        '& fieldset': {
+                            borderColor: '#334155',
+                        },
+                        '&:hover fieldset': {
+                            borderColor: '#EAB308',
+                        },
+                        '&.Mui-focused fieldset': {
+                            borderColor: '#EAB308',
+                            borderWidth: 2,
+                        }
+                    },
+                    '& .MuiInputLabel-root': {
+                        color: '#94A3B8',
+                        fontWeight: 600,
+                        '&.Mui-focused': {
+                            color: '#EAB308',
+                        }
+                    }
+                }}
             />
 
             <TextField
@@ -129,6 +221,30 @@ export default function ContentManager() {
                 margin="normal"
                 value={subtitle}
                 onChange={(e) => setSubtitle(e.target.value)}
+                sx={{
+                    '& .MuiOutlinedInput-root': {
+                        bgcolor: '#1E293B',
+                        color: 'white',
+                        borderRadius: 2,
+                        '& fieldset': {
+                            borderColor: '#334155',
+                        },
+                        '&:hover fieldset': {
+                            borderColor: '#EAB308',
+                        },
+                        '&.Mui-focused fieldset': {
+                            borderColor: '#EAB308',
+                            borderWidth: 2,
+                        }
+                    },
+                    '& .MuiInputLabel-root': {
+                        color: '#94A3B8',
+                        fontWeight: 600,
+                        '&.Mui-focused': {
+                            color: '#EAB308',
+                        }
+                    }
+                }}
             />
 
             <TextField
@@ -139,17 +255,65 @@ export default function ContentManager() {
                 margin="normal"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
+                sx={{
+                    '& .MuiOutlinedInput-root': {
+                        bgcolor: '#1E293B',
+                        color: 'white',
+                        borderRadius: 2,
+                        '& fieldset': {
+                            borderColor: '#334155',
+                        },
+                        '&:hover fieldset': {
+                            borderColor: '#EAB308',
+                        },
+                        '&.Mui-focused fieldset': {
+                            borderColor: '#EAB308',
+                            borderWidth: 2,
+                        }
+                    },
+                    '& .MuiInputLabel-root': {
+                        color: '#94A3B8',
+                        fontWeight: 600,
+                        '&.Mui-focused': {
+                            color: '#EAB308',
+                        }
+                    }
+                }}
             />
 
-            <Typography variant="h6" sx={{ mt: 6, mb: 2 }}>
+            <Typography
+                variant="h6"
+                sx={{
+                    mt: 6,
+                    mb: 3,
+                    color: '#94A3B8',
+                    fontWeight: 600,
+                    fontSize: '0.875rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                }}
+            >
                 Background Images ({backgroundImages.length})
             </Typography>
 
             <Button
-                variant="outlined"
+                variant="contained"
                 component="label"
                 startIcon={<PhotoCameraIcon />}
-                sx={{ mb: 4 }}
+                sx={{
+                    mb: 4,
+                    background: 'linear-gradient(135deg, #EAB308 0%, #F59E0B 100%)',
+                    color: 'white',
+                    fontWeight: 600,
+                    px: 4,
+                    py: 1.5,
+                    borderRadius: 2,
+                    boxShadow: '0 4px 14px 0 rgba(234, 179, 8, 0.2)',
+                    '&:hover': {
+                        background: 'linear-gradient(135deg, #F59E0B 0%, #EAB308 100%)',
+                        boxShadow: '0 6px 20px 0 rgba(234, 179, 8, 0.3)',
+                    }
+                }}
             >
                 Upload Images (you can select many)
                 <input
@@ -174,9 +338,16 @@ export default function ContentManager() {
                         key={index}
                         sx={{
                             position: 'relative',
-                            borderRadius: 3,
+                            borderRadius: 2,
                             overflow: 'hidden',
-                            boxShadow: 4,
+                            bgcolor: '#1E293B',
+                            border: '1px solid #334155',
+                            transition: 'all 0.3s ease',
+                            '&:hover': {
+                                transform: 'translateY(-4px)',
+                                boxShadow: '0 12px 24px rgba(0, 0, 0, 0.4)',
+                                borderColor: '#EAB308',
+                            }
                         }}
                     >
                         <img
@@ -191,14 +362,27 @@ export default function ContentManager() {
                                 position: 'absolute',
                                 top: 8,
                                 right: 8,
-                                bgcolor: 'rgba(0,0,0,0.65)',
+                                bgcolor: 'rgba(0,0,0,0.75)',
                                 color: 'white',
-                                '&:hover': { bgcolor: 'rgba(0,0,0,0.85)' },
+                                backdropFilter: 'blur(4px)',
+                                '&:hover': {
+                                    bgcolor: 'rgba(239, 68, 68, 0.9)',
+                                    transform: 'scale(1.1)',
+                                },
+                                transition: 'all 0.2s ease',
                             }}
                         >
                             <DeleteIcon />
                         </IconButton>
-                        <Box sx={{ p: 1.5, bgcolor: 'primary.main', color: 'white', textAlign: 'center' }}>
+                        <Box
+                            sx={{
+                                p: 1.5,
+                                background: 'linear-gradient(135deg, #EAB308 0%, #F59E0B 100%)',
+                                color: 'white',
+                                textAlign: 'center',
+                                fontWeight: 600
+                            }}
+                        >
                             Slide {index + 1}
                         </Box>
                     </Box>
@@ -214,7 +398,34 @@ export default function ContentManager() {
                 onChange={(e) => setCarouselInterval(Number(e.target.value) || 6000)}
                 helperText="6000–8000 ms = cinematic feel"
                 inputProps={{ min: 3000 }}
-                sx={{ mt: 5 }}
+                sx={{
+                    mt: 5,
+                    '& .MuiOutlinedInput-root': {
+                        bgcolor: '#1E293B',
+                        color: 'white',
+                        borderRadius: 2,
+                        '& fieldset': {
+                            borderColor: '#334155',
+                        },
+                        '&:hover fieldset': {
+                            borderColor: '#EAB308',
+                        },
+                        '&.Mui-focused fieldset': {
+                            borderColor: '#EAB308',
+                            borderWidth: 2,
+                        }
+                    },
+                    '& .MuiInputLabel-root': {
+                        color: '#94A3B8',
+                        fontWeight: 600,
+                        '&.Mui-focused': {
+                            color: '#EAB308',
+                        }
+                    },
+                    '& .MuiFormHelperText-root': {
+                        color: '#64748B',
+                    }
+                }}
             />
 
             <Button
@@ -222,7 +433,28 @@ export default function ContentManager() {
                 size="large"
                 onClick={handleSave}
                 disabled={mutation.isPending}
-                sx={{ mt: 6, px: 8, py: 1.5, borderRadius: 3 }}
+                sx={{
+                    mt: 6,
+                    px: 8,
+                    py: 1.5,
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, #EAB308 0%, #F59E0B 100%)',
+                    color: 'white',
+                    fontWeight: 700,
+                    fontSize: '1rem',
+                    boxShadow: '0 8px 16px 0 rgba(234, 179, 8, 0.25)',
+                    '&:hover': {
+                        background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                        boxShadow: '0 12px 24px 0 rgba(234, 179, 8, 0.35)',
+                        transform: 'translateY(-2px)',
+                    },
+                    '&:disabled': {
+                        background: '#334155',
+                        color: '#64748B',
+                        boxShadow: 'none',
+                    },
+                    transition: 'all 0.3s ease',
+                }}
             >
                 {mutation.isPending ? 'Saving…' : 'Save Hero Carousel'}
             </Button>

@@ -18,7 +18,7 @@ import {
   Menu,
   MenuItem,
   Avatar,
-  Tooltip, // ← ADDED THIS
+  Tooltip,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -92,99 +92,222 @@ export default function DashboardLayout() {
   };
 
   const drawer = (
-    <Box>
-      <Toolbar sx={{ bgcolor: '#1a1f2e', justifyContent: 'center' }}>
-        <Typography variant="h6" color="white" fontWeight="bold">
-          Construct CMS
-        </Typography>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {/* Logo Header */}
+      <Toolbar sx={{ bgcolor: '#020617', justifyContent: 'center', py: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box
+            sx={{
+              width: 40,
+              height: 40,
+              background: 'linear-gradient(135deg, #EAB308 0%, #F59E0B 100%)',
+              borderRadius: '10px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mr: 2,
+              boxShadow: '0 4px 14px 0 rgba(234, 179, 8, 0.4)'
+            }}
+          >
+            <Typography variant="h6" fontWeight="bold" sx={{ color: 'white' }}>
+              C
+            </Typography>
+          </Box>
+          <Typography variant="h6" color="white" fontWeight="bold" sx={{ letterSpacing: '0.5px' }}>
+            CONSTRUCT
+          </Typography>
+        </Box>
       </Toolbar>
-      <Divider />
-      <List sx={{ px: 2, py: 2 }}>
+
+      <Divider sx={{ bgcolor: '#1E293B' }} />
+
+      {/* Navigation Menu */}
+      <List sx={{ px: 2, py: 2, flexGrow: 1 }}>
         {menuItems.map((item) => (
           <ListItemButton
             key={item.text}
             selected={location.pathname === item.path}
             onClick={() => handleNav(item.path)}
             sx={{
-              borderRadius: 3,
+              borderRadius: 2,
               mb: 1,
               py: 1.5,
+              transition: 'all 0.2s ease',
               '&.Mui-selected': {
-                bgcolor: '#FF6B35',
+                background: 'linear-gradient(135deg, #EAB308 0%, #F59E0B 100%)',
                 color: 'white',
+                boxShadow: '0 4px 12px 0 rgba(234, 179, 8, 0.3)',
                 '& .MuiListItemIcon-root': { color: 'white' },
-                '&:hover': { bgcolor: '#e55a30' },
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #F59E0B 0%, #EAB308 100%)',
+                },
               },
               '&:hover': {
-                bgcolor: 'rgba(255, 107, 53, 0.1)',
+                bgcolor: '#1E293B',
+                transform: 'translateX(4px)',
               },
             }}
           >
-            <ListItemIcon sx={{ color: location.pathname === item.path ? 'white' : 'inherit' }}>
+            <ListItemIcon sx={{ color: location.pathname === item.path ? 'white' : '#94A3B8', minWidth: 40 }}>
               {item.icon}
             </ListItemIcon>
-            <ListItemText primary={item.text} />
+            <ListItemText
+              primary={item.text}
+              primaryTypographyProps={{
+                fontWeight: location.pathname === item.path ? 600 : 400,
+                fontSize: '0.95rem'
+              }}
+            />
           </ListItemButton>
         ))}
       </List>
-      <Box sx={{ flexGrow: 1 }} />
-      <Divider />
+
+      <Divider sx={{ bgcolor: '#1E293B' }} />
+
+      {/* Logout Button */}
       <List sx={{ px: 2, pb: 2 }}>
         <ListItemButton
           onClick={logout}
           sx={{
-            borderRadius: 3,
-            color: '#f44336',
-            '&:hover': { bgcolor: 'rgba(244, 67, 54, 0.1)' },
+            borderRadius: 2,
+            color: '#F87171',
+            transition: 'all 0.2s ease',
+            '&:hover': {
+              bgcolor: 'rgba(248, 113, 113, 0.1)',
+              transform: 'translateX(4px)',
+            },
           }}
         >
-          <ListItemIcon sx={{ color: '#f44336' }}>
+          <ListItemIcon sx={{ color: '#F87171', minWidth: 40 }}>
             <LogoutIcon />
           </ListItemIcon>
-          <ListItemText primary="Logout" />
+          <ListItemText
+            primary="Logout"
+            primaryTypographyProps={{
+              fontWeight: 500,
+              fontSize: '0.95rem'
+            }}
+          />
         </ListItemButton>
       </List>
     </Box>
   );
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', flexDirection: 'column' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <CssBaseline />
 
-      {/* Light Top Bar */}
-      <AppBar position="fixed" sx={{ bgcolor: '#f8f9fa', color: 'text.primary', boxShadow: 1, zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+      {/* Top AppBar - now starts after sidebar on desktop */}
+      <AppBar
+        position="fixed"
+        sx={{
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+          ml: { md: `${drawerWidth}px` },
+          bgcolor: '#0F172A',
+          color: 'white',
+          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.3)',
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          borderBottom: '1px solid #1E293B'
+        }}
+      >
         <Toolbar>
-          <IconButton color="inherit" onClick={() => setMobileOpen(!mobileOpen)} sx={{ mr: 2, display: { md: 'none' } }}>
+          <IconButton
+            color="inherit"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            sx={{
+              mr: 2,
+              display: { md: 'none' },
+              '&:hover': {
+                bgcolor: '#1E293B',
+              }
+            }}
+          >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" fontWeight="bold" sx={{ flexGrow: 1 }}>
-            Admin Dashboard
-          </Typography>
+          <Box sx={{ flexGrow: 1 }} />
           <Tooltip title="View Homepage">
-            <IconButton onClick={() => navigate('/')} color="primary">
+            <IconButton
+              onClick={() => navigate('/')}
+              sx={{
+                color: '#EAB308',
+                '&:hover': {
+                  bgcolor: 'rgba(234, 179, 8, 0.1)',
+                }
+              }}
+            >
               <HomeIcon />
             </IconButton>
           </Tooltip>
-          <IconButton onClick={handleMenu} sx={{ ml: 2 }}>
-            <Avatar sx={{ bgcolor: '#FF6B35' }}>
+          <IconButton
+            onClick={handleMenu}
+            sx={{
+              ml: 2,
+              '&:hover': {
+                bgcolor: '#1E293B',
+              }
+            }}
+          >
+            <Avatar
+              sx={{
+                background: 'linear-gradient(135deg, #EAB308 0%, #F59E0B 100%)',
+                boxShadow: '0 4px 14px 0 rgba(234, 179, 8, 0.3)'
+              }}
+            >
               <AccountCircle />
             </Avatar>
           </IconButton>
-          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-            <MenuItem disabled>Admin User</MenuItem>
-            <Divider />
-            <MenuItem onClick={logout}>Logout</MenuItem>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleClose}
+            PaperProps={{
+              sx: {
+                bgcolor: '#1E293B',
+                color: 'white',
+                border: '1px solid #334155',
+                mt: 1,
+                minWidth: 180,
+              }
+            }}
+          >
+            <MenuItem
+              disabled
+              sx={{
+                color: '#94A3B8 !important',
+                fontWeight: 600,
+              }}
+            >
+              Admin User
+            </MenuItem>
+            <Divider sx={{ bgcolor: '#334155', my: 1 }} />
+            <MenuItem
+              onClick={logout}
+              sx={{
+                color: '#F87171',
+                '&:hover': {
+                  bgcolor: 'rgba(248, 113, 113, 0.1)',
+                }
+              }}
+            >
+              Logout
+            </MenuItem>
           </Menu>
         </Toolbar>
       </AppBar>
 
-      {/* Permanent Dark Sidebar */}
+      {/* Permanent Sidebar (Desktop) */}
       <Drawer
         variant="permanent"
         sx={{
           width: drawerWidth,
           flexShrink: 0,
-          '& .MuiDrawer-paper': { width: drawerWidth, bgcolor: '#1a1f2e', color: 'white', borderRight: 'none' },
+          '& .MuiDrawer-paper': {
+            width: drawerWidth,
+            bgcolor: '#0F172A',
+            color: 'white',
+            borderRight: '1px solid #1E293B',
+            boxSizing: 'border-box',
+          },
           display: { xs: 'none', md: 'block' },
         }}
       >
@@ -199,22 +322,42 @@ export default function DashboardLayout() {
         ModalProps={{ keepMounted: true }}
         sx={{
           display: { xs: 'block', md: 'none' },
-          '& .MuiDrawer-paper': { width: drawerWidth, bgcolor: '#1a1f2e', color: 'white' },
+          '& .MuiDrawer-paper': {
+            width: drawerWidth,
+            bgcolor: '#0F172A',
+            color: 'white'
+          },
         }}
       >
         {drawer}
       </Drawer>
 
-      {/* Main Content */}
-      <Box component="main" sx={{ flexGrow: 1, bgcolor: '#f5f7fa', ml: { md: `${drawerWidth}px` } }}>
-        <Toolbar /> {/* Spacer */}
-        <Box sx={{ p: { xs: 3, md: 5 } }}>
+      {/* Main Content Area */}
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+          bgcolor: '#1E293B',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+      >
+        <Toolbar /> {/* Spacer for fixed AppBar */}
+        <Box sx={{ flexGrow: 1, p: { xs: 3, md: 5 } }}>
           <Outlet />
         </Box>
 
         {/* Footer */}
-        <Box sx={{ py: 3, textAlign: 'center', bgcolor: '#f8f9fa', borderTop: '1px solid #e0e0e0', mt: 'auto' }}>
-          <Typography variant="body2" color="text.secondary">
+        <Box
+          sx={{
+            py: 3,
+            textAlign: 'center',
+            bgcolor: '#0F172A',
+            borderTop: '1px solid #1E293B',
+          }}
+        >
+          <Typography variant="body2" sx={{ color: '#64748B' }}>
             © 2026 Construct CMS. All rights reserved.
           </Typography>
         </Box>

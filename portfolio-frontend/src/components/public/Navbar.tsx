@@ -1,5 +1,11 @@
-// src/components/public/Navbar.tsx
-import { AppBar, Toolbar, Box, Container, IconButton, Button } from '@mui/material';
+import {
+    AppBar,
+    Toolbar,
+    Box,
+    Container,
+    IconButton,
+    Button,
+} from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
 import LockIcon from '@mui/icons-material/Lock';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -14,7 +20,11 @@ const navLinks = [
 
 export default function PublicNavbar() {
     const location = useLocation();
-    const { isAuthenticated, logout } = useAuthStore();
+
+    const { isAuthenticated, hydrated, logout } = useAuthStore();
+
+    // ⛔ Prevent rendering until auth state is fully restored
+    if (!hydrated) return null;
 
     const handleLogout = () => {
         logout();
@@ -33,7 +43,7 @@ export default function PublicNavbar() {
         >
             <Container maxWidth="lg">
                 <Toolbar sx={{ justifyContent: 'space-between', py: 1 }}>
-                    {/* Logo */}
+                    {/* LOGO */}
                     <Box
                         component={Link}
                         to="/"
@@ -66,7 +76,7 @@ export default function PublicNavbar() {
                         CONSTRUCT
                     </Box>
 
-                    {/* Navigation Links + Auth Controls */}
+                    {/* NAV LINKS + AUTH ACTIONS */}
                     <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
                         {navLinks.map((link) => (
                             <Button
@@ -74,8 +84,14 @@ export default function PublicNavbar() {
                                 component={Link}
                                 to={link.path}
                                 sx={{
-                                    fontWeight: location.pathname === link.path ? 700 : 500,
-                                    color: location.pathname === link.path ? 'secondary.main' : 'text.primary',
+                                    fontWeight:
+                                        location.pathname === link.path
+                                            ? 700
+                                            : 500,
+                                    color:
+                                        location.pathname === link.path
+                                            ? 'secondary.main'
+                                            : 'text.primary',
                                     textTransform: 'none',
                                     fontSize: '1rem',
                                     px: 2,
@@ -89,6 +105,7 @@ export default function PublicNavbar() {
                             </Button>
                         ))}
 
+                        {/* AUTH CONTROLS */}
                         {isAuthenticated ? (
                             <>
                                 <Button
@@ -100,11 +117,15 @@ export default function PublicNavbar() {
                                         color: 'primary.main',
                                         textTransform: 'none',
                                         bgcolor: 'action.hover',
-                                        '&:hover': { bgcolor: 'primary.light', color: 'white' },
+                                        '&:hover': {
+                                            bgcolor: 'primary.light',
+                                            color: 'white',
+                                        },
                                     }}
                                 >
                                     Dashboard
                                 </Button>
+
                                 <Button
                                     onClick={handleLogout}
                                     startIcon={<LogoutIcon />}
@@ -112,7 +133,10 @@ export default function PublicNavbar() {
                                         fontWeight: 600,
                                         color: 'error.main',
                                         textTransform: 'none',
-                                        '&:hover': { bgcolor: 'error.light', color: 'white' },
+                                        '&:hover': {
+                                            bgcolor: 'error.light',
+                                            color: 'white',
+                                        },
                                     }}
                                 >
                                     Logout

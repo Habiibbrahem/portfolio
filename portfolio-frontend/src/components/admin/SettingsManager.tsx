@@ -7,7 +7,6 @@ import {
     TextField,
     Typography,
     Alert,
-    Paper,
     Grid,
     Divider,
 } from '@mui/material';
@@ -18,7 +17,7 @@ import api from '../../api/client';
 interface ContactData {
     backgroundImage?: string;
     homeImage?: string;
-    loginBackgroundImage?: string; // NEW: Dedicated login background
+    loginBackgroundImage?: string;
     addressLine1?: string;
     addressLine2?: string;
     phone1?: string;
@@ -117,103 +116,232 @@ export default function SettingsManager() {
         passwordMutation.mutate({ currentPassword, newPassword });
     };
 
-    if (isLoading) return <Typography>Loading settings...</Typography>;
+    if (isLoading) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+                <CircularProgress size={60} sx={{ color: '#EAB308' }} />
+            </Box>
+        );
+    }
 
     return (
-        <Paper elevation={4} sx={{ p: { xs: 4, md: 6 }, maxWidth: 1000, mx: 'auto', borderRadius: 4 }}>
-            <Typography variant="h4" fontWeight="bold" color="primary.main" mb={5}>
-                Settings
-            </Typography>
-
-            {success && <Alert severity="success" sx={{ mb: 4 }}>{success}</Alert>}
-            {error && <Alert severity="error" sx={{ mb: 4 }}>{error}</Alert>}
-
-            <Grid container spacing={6}>
-                {/* Login Background */}
-                <Grid item xs={12} md={6}>
-                    <Typography variant="h6" gutterBottom>
-                        Login Page Background
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" mb={3}>
-                        Upload a high-quality construction image for the admin login screen.
-                    </Typography>
-
-                    <Button
-                        variant="outlined"
-                        component="label"
-                        startIcon={<PhotoCameraIcon />}
-                        disabled={uploadMutation.isPending}
+        <Box
+            sx={{
+                minHeight: '100vh',
+                bgcolor: '#0F172A',
+                color: 'white',
+                p: { xs: 3, md: 6 },
+            }}
+        >
+            <Box sx={{ maxWidth: 1000, mx: 'auto' }}>
+                {/* Title with gold accent line */}
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 6 }}>
+                    <Box
+                        sx={{
+                            width: 4,
+                            height: 40,
+                            background: 'linear-gradient(180deg, #EAB308 0%, #F59E0B 100%)',
+                            borderRadius: 2,
+                            mr: 3
+                        }}
+                    />
+                    <Typography
+                        variant="h4"
+                        fontWeight="bold"
+                        sx={{
+                            color: 'white',
+                            letterSpacing: '-0.5px'
+                        }}
                     >
-                        {uploadMutation.isPending ? 'Uploading...' : 'Upload New Background'}
-                        <input type="file" hidden accept="image/*" onChange={handleUpload} />
-                    </Button>
-
-                    {loginBg && (
-                        <Box sx={{ mt: 4, borderRadius: 3, overflow: 'hidden', boxShadow: 3 }}>
-                            <img
-                                src={loginBg}
-                                alt="Current login background"
-                                style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 12 }}
-                            />
-                        </Box>
-                    )}
-                </Grid>
-
-                <Grid item xs={12}>
-                    <Divider sx={{ my: 4 }} />
-                </Grid>
-
-                {/* Change Password */}
-                <Grid item xs={12} md={6}>
-                    <Typography variant="h6" gutterBottom>
-                        Change Password
+                        Settings
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" mb={3}>
-                        Update your admin account password.
-                    </Typography>
+                </Box>
 
-                    <Box component="form" onSubmit={handlePasswordChange} sx={{ maxWidth: 400 }}>
-                        <TextField
-                            label="Current Password"
-                            type="password"
-                            fullWidth
-                            margin="normal"
-                            value={currentPassword}
-                            onChange={(e) => setCurrentPassword(e.target.value)}
-                            required
-                        />
-                        <TextField
-                            label="New Password"
-                            type="password"
-                            fullWidth
-                            margin="normal"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            required
-                            helperText="Minimum 6 characters"
-                        />
-                        <TextField
-                            label="Confirm New Password"
-                            type="password"
-                            fullWidth
-                            margin="normal"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            required
-                        />
+                {success && (
+                    <Alert
+                        severity="success"
+                        sx={{
+                            mb: 4,
+                            bgcolor: 'rgba(16, 185, 129, 0.1)',
+                            color: '#34D399',
+                            border: '1px solid rgba(16, 185, 129, 0.2)',
+                            '& .MuiAlert-icon': { color: '#34D399' }
+                        }}
+                    >
+                        {success}
+                    </Alert>
+                )}
+                {error && (
+                    <Alert
+                        severity="error"
+                        sx={{
+                            mb: 4,
+                            bgcolor: 'rgba(239, 68, 68, 0.1)',
+                            color: '#F87171',
+                            border: '1px solid rgba(239, 68, 68, 0.2)',
+                            '& .MuiAlert-icon': { color: '#F87171' }
+                        }}
+                    >
+                        {error}
+                    </Alert>
+                )}
+
+                <Grid container spacing={8}>
+                    {/* Login Background */}
+                    <Grid item xs={12} lg={6}>
+                        <Typography variant="h6" sx={{ mb: 3, color: '#94A3B8', fontWeight: 600 }}>
+                            Login Page Background
+                        </Typography>
+                        <Typography variant="body1" sx={{ color: '#CBD5E1', mb: 4 }}>
+                            Upload a high-quality construction image for the admin login screen.
+                        </Typography>
 
                         <Button
-                            type="submit"
                             variant="contained"
-                            size="large"
-                            disabled={passwordMutation.isPending}
-                            sx={{ mt: 3, px: 6, py: 1.5 }}
+                            component="label"
+                            startIcon={<PhotoCameraIcon />}
+                            disabled={uploadMutation.isPending}
+                            sx={{
+                                mb: 5,
+                                background: 'linear-gradient(135deg, #EAB308 0%, #F59E0B 100%)',
+                                color: 'white',
+                                fontWeight: 600,
+                                px: 5,
+                                py: 1.5,
+                                borderRadius: 2,
+                                boxShadow: '0 4px 14px 0 rgba(234, 179, 8, 0.2)',
+                                '&:hover': {
+                                    background: 'linear-gradient(135deg, #F59E0B 0%, #EAB308 100%)',
+                                    boxShadow: '0 6px 20px 0 rgba(234, 179, 8, 0.3)',
+                                },
+                            }}
                         >
-                            {passwordMutation.isPending ? 'Updating...' : 'Update Password'}
+                            {uploadMutation.isPending ? 'Uploading...' : 'Upload New Background'}
+                            <input type="file" hidden accept="image/*" onChange={handleUpload} />
                         </Button>
-                    </Box>
+
+                        {loginBg && (
+                            <Box sx={{ borderRadius: 3, overflow: 'hidden', boxShadow: '0 12px 40px rgba(0,0,0,0.4)' }}>
+                                <img
+                                    src={loginBg}
+                                    alt="Current login background"
+                                    style={{ width: '100%', display: 'block' }}
+                                />
+                            </Box>
+                        )}
+                    </Grid>
+
+                    <Grid item xs={12}>
+                        <Divider sx={{ my: 8, borderColor: '#334155' }} />
+                    </Grid>
+
+                    {/* Change Password */}
+                    <Grid item xs={12} lg={6}>
+                        <Typography variant="h6" sx={{ mb: 3, color: '#94A3B8', fontWeight: 600 }}>
+                            Change Password
+                        </Typography>
+                        <Typography variant="body1" sx={{ color: '#CBD5E1', mb: 4 }}>
+                            Update your admin account password.
+                        </Typography>
+
+                        <Box component="form" onSubmit={handlePasswordChange} sx={{ maxWidth: 500 }}>
+                            <TextField
+                                label="Current Password"
+                                type="password"
+                                fullWidth
+                                margin="normal"
+                                value={currentPassword}
+                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                required
+                                sx={{
+                                    '& .MuiOutlinedInput-root': {
+                                        bgcolor: '#1E293B',
+                                        color: 'white',
+                                        borderRadius: 2,
+                                        '& fieldset': { borderColor: '#334155' },
+                                        '&:hover fieldset': { borderColor: '#EAB308' },
+                                        '&.Mui-focused fieldset': { borderColor: '#EAB308', borderWidth: 2 },
+                                    },
+                                    '& .MuiInputLabel-root': { color: '#94A3B8', fontWeight: 600, '&.Mui-focused': { color: '#EAB308' } },
+                                }}
+                            />
+                            <TextField
+                                label="New Password"
+                                type="password"
+                                fullWidth
+                                margin="normal"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                required
+                                helperText="Minimum 6 characters"
+                                sx={{
+                                    '& .MuiOutlinedInput-root': {
+                                        bgcolor: '#1E293B',
+                                        color: 'white',
+                                        borderRadius: 2,
+                                        '& fieldset': { borderColor: '#334155' },
+                                        '&:hover fieldset': { borderColor: '#EAB308' },
+                                        '&.Mui-focused fieldset': { borderColor: '#EAB308', borderWidth: 2 },
+                                    },
+                                    '& .MuiInputLabel-root': { color: '#94A3B8', fontWeight: 600, '&.Mui-focused': { color: '#EAB308' } },
+                                    '& .MuiFormHelperText-root': { color: '#64748B' },
+                                }}
+                            />
+                            <TextField
+                                label="Confirm New Password"
+                                type="password"
+                                fullWidth
+                                margin="normal"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                required
+                                sx={{
+                                    '& .MuiOutlinedInput-root': {
+                                        bgcolor: '#1E293B',
+                                        color: 'white',
+                                        borderRadius: 2,
+                                        '& fieldset': { borderColor: '#334155' },
+                                        '&:hover fieldset': { borderColor: '#EAB308' },
+                                        '&.Mui-focused fieldset': { borderColor: '#EAB308', borderWidth: 2 },
+                                    },
+                                    '& .MuiInputLabel-root': { color: '#94A3B8', fontWeight: 600, '&.Mui-focused': { color: '#EAB308' } },
+                                }}
+                            />
+
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                size="large"
+                                disabled={passwordMutation.isPending}
+                                sx={{
+                                    mt: 5,
+                                    px: 8,
+                                    py: 2,
+                                    borderRadius: 2,
+                                    background: 'linear-gradient(135deg, #EAB308 0%, #F59E0B 100%)',
+                                    color: 'white',
+                                    fontWeight: 700,
+                                    fontSize: '1rem',
+                                    boxShadow: '0 8px 16px 0 rgba(234, 179, 8, 0.25)',
+                                    '&:hover': {
+                                        background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                                        boxShadow: '0 12px 24px 0 rgba(234, 179, 8, 0.35)',
+                                        transform: 'translateY(-2px)',
+                                    },
+                                    '&:disabled': {
+                                        background: '#334155',
+                                        color: '#64748B',
+                                        boxShadow: 'none',
+                                    },
+                                    transition: 'all 0.3s ease',
+                                }}
+                            >
+                                {passwordMutation.isPending ? 'Updating...' : 'Update Password'}
+                            </Button>
+                        </Box>
+                    </Grid>
                 </Grid>
-            </Grid>
-        </Paper>
+            </Box>
+        </Box>
     );
 }

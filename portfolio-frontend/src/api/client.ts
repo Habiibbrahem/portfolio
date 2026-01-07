@@ -7,7 +7,7 @@ const api = axios.create({
 });
 
 let isRefreshing = false;
-let failedQueue: any[] = [];
+let failedQueue: Array<{ resolve: (value: any) => void; reject: (reason?: any) => void }> = [];
 
 const processQueue = (error: any, token: string | null = null) => {
     failedQueue.forEach(prom => {
@@ -30,53 +30,61 @@ api.interceptors.response.use(
         const originalRequest = error.config;
 
         if (error.response?.status === 401 && !originalRequest._retry) {
-            console.log('401 → Trying refresh token...');
+            console.log('401 detected → attempting token refresh');
+
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
-                }).then(token => {
-                    originalRequest.headers.Authorization = `Bearer ${token}`;
-                    return api(originalRequest);
-                }).catch(err => Promise.reject(err));
+                })
+                    .then((token) => {
+                        originalRequest.headers.Authorization = `Bearer ${token}`;
+                        return api(originalRequest);
+                    })
+                    .catch((err) => Promise.reject(err));
             }
 
             originalRequest._retry = true;
             isRefreshing = true;
 
             const refreshToken = localStorage.getItem('refreshToken');
-            console.log('Refresh token exists:', !!refreshToken);
-
             if (!refreshToken) {
-                console.log('No refresh token → force logout');
-                processQueue(error, null);
+                console.log('No refresh token → forcing logout');
                 isRefreshing = false;
+                processQueue(error, null);
                 localStorage.clear();
                 window.location.href = '/admin/login';
                 return Promise.reject(error);
             }
 
             try {
-                const { data } = await axios.post('http://localhost:3000/auth/refresh', { refresh_token: refreshToken });
-                const newToken = data.accessToken;
-                const newRefresh = data.refreshToken;
+                // FIXED: Use `api` instance for refresh (correct baseURL + interceptors)
+                const { data } = await api.post('/auth/refresh', { refresh_token: refreshToken });
 
-                localStorage.setItem('accessToken', newToken);
-                if (newRefresh) localStorage.setItem('refreshToken', newRefresh);
+                const newAccessToken = data.access_token || data.accessToken;
+                const newRefreshToken = data.refresh_token || data.refreshToken;
 
-                console.log('Token refreshed successfully!');
+                localStorage.setItem('accessToken', newAccessToken);
+                if (newRefreshToken) localStorage.setItem('refreshToken', newRefreshToken);
 
-                api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-                originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                console.log('Token refreshed successfully');
 
-                processQueue(null, newToken);
+                api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
+                originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+
+                processQueue(null, newAccessToken);
                 isRefreshing = false;
+
                 return api(originalRequest);
             } catch (refreshError: any) {
-                console.error('Refresh failed:', refreshError.response?.data || refreshError);
+                console.error('Refresh token failed:', refreshError.response?.data || refreshError.message);
+
                 processQueue(refreshError, null);
                 isRefreshing = false;
+
+                // Force logout on refresh failure
                 localStorage.clear();
                 window.location.href = '/admin/login';
+
                 return Promise.reject(refreshError);
             }
         }

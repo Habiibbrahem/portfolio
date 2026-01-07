@@ -7,7 +7,6 @@ import {
     TextField,
     Typography,
     Alert,
-    Paper,
     CircularProgress,
     Grid,
     IconButton,
@@ -93,34 +92,72 @@ function SortableItem(props: { item: NewsItem; onRemove: (id: string) => void })
     };
 
     return (
-        <Card ref={setNodeRef} style={style} sx={{ display: 'flex', mb: 2, alignItems: 'center' }}>
-            <IconButton {...attributes} {...listeners} sx={{ cursor: 'grab' }}>
+        <Card
+            ref={setNodeRef}
+            style={style}
+            sx={{
+                display: 'flex',
+                mb: 3,
+                alignItems: 'center',
+                bgcolor: '#1E293B',
+                borderRadius: 2,
+                border: '1px solid #334155',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                    borderColor: '#EAB308',
+                    boxShadow: '0 8px 24px rgba(234,179,8,0.15)',
+                },
+            }}
+        >
+            <IconButton {...attributes} {...listeners} sx={{ cursor: 'grab', color: '#94A3B8' }}>
                 <DragHandleIcon />
             </IconButton>
             {item.image ? (
                 <CardMedia
                     component="img"
-                    sx={{ width: 100, height: 100, objectFit: 'cover' }}
-                    image={`${item.image}?w=200&h=200&fit=crop`}
+                    sx={{ width: 120, height: 120, objectFit: 'cover', borderRadius: '8px 0 0 8px' }}
+                    image={`${item.image}?w=240&h=240&fit=crop`}
                     alt={item.title}
                 />
             ) : (
-                <Box sx={{ width: 100, height: 100, bgcolor: 'grey.300', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <AddPhotoAlternateIcon fontSize="large" color="disabled" />
+                <Box
+                    sx={{
+                        width: 120,
+                        height: 120,
+                        bgcolor: '#334155',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: '8px 0 0 8px',
+                    }}
+                >
+                    <AddPhotoAlternateIcon fontSize="large" sx={{ color: '#64748B' }} />
                 </Box>
             )}
-            <CardContent sx={{ flexGrow: 1 }}>
-                <Typography variant="subtitle1">{item.title || 'Untitled News'}</Typography>
-                <Typography variant="caption" color="text.secondary">
+            <CardContent sx={{ flexGrow: 1, py: 3 }}>
+                <Typography variant="h6" sx={{ color: 'white', fontWeight: 600 }}>
+                    {item.title || 'Untitled News'}
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#94A3B8', mt: 0.5 }}>
                     {dayjs(item.date).format('MMMM D, YYYY')}
                 </Typography>
                 {item.description && (
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                        {item.description.substring(0, 60)}{item.description.length > 60 ? '...' : ''}
+                    <Typography variant="body2" sx={{ color: '#CBD5E1', mt: 1.5, lineHeight: 1.6 }}>
+                        {item.description.substring(0, 120)}{item.description.length > 120 ? '...' : ''}
                     </Typography>
                 )}
             </CardContent>
-            <IconButton color="error" onClick={() => onRemove(item.id)}>
+            <IconButton
+                color="error"
+                onClick={() => onRemove(item.id)}
+                sx={{
+                    mr: 2,
+                    bgcolor: 'rgba(239,68,68,0.1)',
+                    color: '#F87171',
+                    '&:hover': { bgcolor: 'rgba(239,68,68,0.2)' },
+                }}
+            >
                 <DeleteIcon />
             </IconButton>
         </Card>
@@ -202,7 +239,7 @@ export default function NewsManager() {
         setNewDescription('');
         setNewDate(dayjs());
 
-        // Log "Added new news"
+        // Log activity
         api.post('/activity/log', {
             text: `Added new news: ${newTitle.trim()}`,
             type: 'news_add',
@@ -225,7 +262,7 @@ export default function NewsManager() {
         const deletedItem = items.find(i => i.id === id);
         setItems(items.filter(i => i.id !== id));
 
-        // Log "Deleted news"
+        // Log activity
         api.post('/activity/log', {
             text: `Deleted news: ${deletedItem?.title || 'Untitled'}`,
             type: 'news_delete',
@@ -235,107 +272,259 @@ export default function NewsManager() {
     const handleSave = () => {
         mutation.mutate(items);
 
-        // Log "Updated news section"
+        // Log activity
         api.post('/activity/log', {
             text: `Updated news section (${items.length} items)`,
             type: 'news_update',
         }).catch(() => { });
     };
 
-    if (isLoading) return <CircularProgress />;
+    if (isLoading) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+                <CircularProgress size={60} sx={{ color: '#EAB308' }} />
+            </Box>
+        );
+    }
 
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <Paper elevation={4} sx={{ p: { xs: 4, md: 6 }, maxWidth: 1200, mx: 'auto', borderRadius: 4 }}>
-                <Typography variant="h4" fontWeight="bold" color="primary" mb={5}>
-                    News Manager
-                </Typography>
-
-                {success && <Alert severity="success" sx={{ mb: 3 }}>{success}</Alert>}
-                {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
-
-                <Grid container spacing={3} sx={{ mb: 6 }}>
-                    <Grid item xs={12} sm={5}>
-                        <TextField
-                            label="News Title"
-                            fullWidth
-                            value={newTitle}
-                            onChange={(e) => setNewTitle(e.target.value)}
+            <Box
+                sx={{
+                    minHeight: '100vh',
+                    bgcolor: '#0F172A',
+                    color: 'white',
+                    p: { xs: 3, md: 6 },
+                }}
+            >
+                <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
+                    {/* Title with gold accent line */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 6 }}>
+                        <Box
+                            sx={{
+                                width: 4,
+                                height: 40,
+                                background: 'linear-gradient(180deg, #EAB308 0%, #F59E0B 100%)',
+                                borderRadius: 2,
+                                mr: 3
+                            }}
                         />
-                    </Grid>
-                    <Grid item xs={12} sm={4}>
-                        <DatePicker
-                            label="News Date"
-                            value={newDate}
-                            onChange={(newValue) => newValue && setNewDate(newValue)}
-                            slotProps={{ textField: { fullWidth: true } }}
-                        />
-                    </Grid>
-                    <Grid item xs={12} sm={3}>
-                        <Button
-                            variant="contained"
-                            fullWidth
-                            onClick={addNewsItem}
-                            disabled={!newTitle.trim()}
-                            sx={{ height: 56 }}
+                        <Typography
+                            variant="h4"
+                            fontWeight="bold"
+                            sx={{
+                                color: 'white',
+                                letterSpacing: '-0.5px'
+                            }}
                         >
-                            Add News
-                        </Button>
-                    </Grid>
-                    <Grid item xs={12}>
-                        <TextField
-                            label="Description"
-                            fullWidth
-                            multiline
-                            rows={4}
-                            value={newDescription}
-                            onChange={(e) => setNewDescription(e.target.value)}
-                            placeholder="Full news description (shown in modal)"
-                        />
-                    </Grid>
-                </Grid>
-
-                <Typography variant="h6" sx={{ mb: 3 }}>
-                    Current News Items ({items.length})
-                </Typography>
-
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                    <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
-                        {items.map((item) => (
-                            <SortableItem key={item.id} item={item} onRemove={removeItem} />
-                        ))}
-                    </SortableContext>
-                </DndContext>
-
-                {items.map((item) => !item.image && (
-                    <Box key={`upload-${item.id}`} sx={{ mt: 2, mb: 3 }}>
-                        <Button
-                            variant="outlined"
-                            component="label"
-                            startIcon={<AddPhotoAlternateIcon />}
-                            disabled={uploading}
-                        >
-                            Upload Image for "{item.title}"
-                            <input
-                                type="file"
-                                hidden
-                                accept="image/*"
-                                onChange={(e) => e.target.files?.[0] && uploadImageForItem(e.target.files[0], item.id)}
-                            />
-                        </Button>
+                            News Manager
+                        </Typography>
                     </Box>
-                ))}
 
-                <Button
-                    variant="contained"
-                    size="large"
-                    onClick={handleSave}
-                    disabled={mutation.isPending || uploading}
-                    sx={{ mt: 6, px: 8, py: 1.5 }}
-                >
-                    {mutation.isPending ? 'Saving...' : 'Save All News'}
-                </Button>
-            </Paper>
+                    {success && (
+                        <Alert
+                            severity="success"
+                            sx={{
+                                mb: 4,
+                                bgcolor: 'rgba(16, 185, 129, 0.1)',
+                                color: '#34D399',
+                                border: '1px solid rgba(16, 185, 129, 0.2)',
+                                '& .MuiAlert-icon': { color: '#34D399' }
+                            }}
+                        >
+                            {success}
+                        </Alert>
+                    )}
+                    {error && (
+                        <Alert
+                            severity="error"
+                            sx={{
+                                mb: 4,
+                                bgcolor: 'rgba(239, 68, 68, 0.1)',
+                                color: '#F87171',
+                                border: '1px solid rgba(239, 68, 68, 0.2)',
+                                '& .MuiAlert-icon': { color: '#F87171' }
+                            }}
+                        >
+                            {error}
+                        </Alert>
+                    )}
+
+                    {/* Add News Form */}
+                    <Grid container spacing={3} sx={{ mb: 6 }}>
+                        <Grid item xs={12} sm={5}>
+                            <TextField
+                                label="News Title"
+                                fullWidth
+                                value={newTitle}
+                                onChange={(e) => setNewTitle(e.target.value)}
+                                sx={{
+                                    '& .MuiOutlinedInput-root': {
+                                        bgcolor: '#1E293B',
+                                        color: 'white',
+                                        borderRadius: 2,
+                                        '& fieldset': { borderColor: '#334155' },
+                                        '&:hover fieldset': { borderColor: '#EAB308' },
+                                        '&.Mui-focused fieldset': { borderColor: '#EAB308', borderWidth: 2 },
+                                    },
+                                    '& .MuiInputLabel-root': { color: '#94A3B8', fontWeight: 600, '&.Mui-focused': { color: '#EAB308' } },
+                                }}
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                            <DatePicker
+                                label="News Date"
+                                value={newDate}
+                                onChange={(newValue) => newValue && setNewDate(newValue)}
+                                slotProps={{
+                                    textField: {
+                                        fullWidth: true,
+                                        sx: {
+                                            '& .MuiOutlinedInput-root': {
+                                                bgcolor: '#1E293B',
+                                                color: 'white',
+                                                borderRadius: 2,
+                                                '& fieldset': { borderColor: '#334155' },
+                                                '&:hover fieldset': { borderColor: '#EAB308' },
+                                                '&.Mui-focused fieldset': { borderColor: '#EAB308', borderWidth: 2 },
+                                            },
+                                            '& .MuiInputLabel-root': { color: '#94A3B8', fontWeight: 600, '&.Mui-focused': { color: '#EAB308' } },
+                                        },
+                                    },
+                                }}
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={3}>
+                            <Button
+                                variant="contained"
+                                fullWidth
+                                onClick={addNewsItem}
+                                disabled={!newTitle.trim()}
+                                sx={{
+                                    height: 56,
+                                    background: 'linear-gradient(135deg, #EAB308 0%, #F59E0B 100%)',
+                                    color: 'white',
+                                    fontWeight: 600,
+                                    boxShadow: '0 4px 14px 0 rgba(234, 179, 8, 0.2)',
+                                    '&:hover': {
+                                        background: 'linear-gradient(135deg, #F59E0B 0%, #EAB308 100%)',
+                                        boxShadow: '0 6px 20px 0 rgba(234, 179, 8, 0.3)',
+                                    },
+                                }}
+                            >
+                                Add News
+                            </Button>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <TextField
+                                label="Description"
+                                fullWidth
+                                multiline
+                                rows={4}
+                                value={newDescription}
+                                onChange={(e) => setNewDescription(e.target.value)}
+                                placeholder="Full news description (shown in modal)"
+                                sx={{
+                                    '& .MuiOutlinedInput-root': {
+                                        bgcolor: '#1E293B',
+                                        color: 'white',
+                                        borderRadius: 2,
+                                        '& fieldset': { borderColor: '#334155' },
+                                        '&:hover fieldset': { borderColor: '#EAB308' },
+                                        '&.Mui-focused fieldset': { borderColor: '#EAB308', borderWidth: 2 },
+                                    },
+                                    '& .MuiInputLabel-root': { color: '#94A3B8', fontWeight: 600, '&.Mui-focused': { color: '#EAB308' } },
+                                }}
+                            />
+                        </Grid>
+                    </Grid>
+
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            mb: 3,
+                            color: '#94A3B8',
+                            fontWeight: 600,
+                            fontSize: '0.875rem',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px'
+                        }}
+                    >
+                        Current News Items ({items.length})
+                    </Typography>
+
+                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                        <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
+                            {items.map((item) => (
+                                <SortableItem key={item.id} item={item} onRemove={removeItem} />
+                            ))}
+                        </SortableContext>
+                    </DndContext>
+
+                    {items.map((item) => !item.image && (
+                        <Box key={`upload-${item.id}`} sx={{ mt: 3, mb: 4 }}>
+                            <Button
+                                variant="contained"
+                                component="label"
+                                startIcon={<AddPhotoAlternateIcon />}
+                                disabled={uploading}
+                                sx={{
+                                    background: 'linear-gradient(135deg, #EAB308 0%, #F59E0B 100%)',
+                                    color: 'white',
+                                    fontWeight: 600,
+                                    px: 4,
+                                    py: 1.5,
+                                    borderRadius: 2,
+                                    boxShadow: '0 4px 14px 0 rgba(234, 179, 8, 0.2)',
+                                    '&:hover': {
+                                        background: 'linear-gradient(135deg, #F59E0B 0%, #EAB308 100%)',
+                                        boxShadow: '0 6px 20px 0 rgba(234, 179, 8, 0.3)',
+                                    },
+                                }}
+                            >
+                                Upload Image for "{item.title}"
+                                <input
+                                    type="file"
+                                    hidden
+                                    accept="image/*"
+                                    onChange={(e) => e.target.files?.[0] && uploadImageForItem(e.target.files[0], item.id)}
+                                />
+                            </Button>
+                        </Box>
+                    ))}
+
+                    <Button
+                        variant="contained"
+                        size="large"
+                        onClick={handleSave}
+                        disabled={mutation.isPending || uploading}
+                        sx={{
+                            mt: 6,
+                            px: 8,
+                            py: 2,
+                            borderRadius: 2,
+                            background: 'linear-gradient(135deg, #EAB308 0%, #F59E0B 100%)',
+                            color: 'white',
+                            fontWeight: 700,
+                            fontSize: '1rem',
+                            boxShadow: '0 8px 16px 0 rgba(234, 179, 8, 0.25)',
+                            '&:hover': {
+                                background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                                boxShadow: '0 12px 24px 0 rgba(234, 179, 8, 0.35)',
+                                transform: 'translateY(-2px)',
+                            },
+                            '&:disabled': {
+                                background: '#334155',
+                                color: '#64748B',
+                                boxShadow: 'none',
+                            },
+                            transition: 'all 0.3s ease',
+                        }}
+                    >
+                        {mutation.isPending ? 'Saving...' : 'Save All News'}
+                    </Button>
+                </Box>
+            </Box>
         </LocalizationProvider>
     );
 }
