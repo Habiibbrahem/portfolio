@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import LockIcon from '@mui/icons-material/Lock';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import LogoutIcon from '@mui/icons-material/Logout';
+import { useAuthStore } from '../../store/useAuthStore';
 
 const navLinks = [
     { label: 'Home', path: '/' },
@@ -13,14 +14,11 @@ const navLinks = [
 
 export default function PublicNavbar() {
     const location = useLocation();
-
-    // Check if admin is logged in
-    const isLoggedIn = !!localStorage.getItem('accessToken');
+    const { isAuthenticated, logout } = useAuthStore();
 
     const handleLogout = () => {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        window.location.href = '/admin/login';
+        logout();
+        window.location.href = '/';
     };
 
     return (
@@ -91,8 +89,7 @@ export default function PublicNavbar() {
                             </Button>
                         ))}
 
-                        {/* Show Admin Controls Only When Logged In */}
-                        {isLoggedIn ? (
+                        {isAuthenticated ? (
                             <>
                                 <Button
                                     component={Link}
@@ -108,7 +105,6 @@ export default function PublicNavbar() {
                                 >
                                     Dashboard
                                 </Button>
-
                                 <Button
                                     onClick={handleLogout}
                                     startIcon={<LogoutIcon />}
@@ -123,7 +119,6 @@ export default function PublicNavbar() {
                                 </Button>
                             </>
                         ) : (
-                            /* Show Lock Icon Only When NOT Logged In */
                             <IconButton
                                 component={Link}
                                 to="/admin/login"
